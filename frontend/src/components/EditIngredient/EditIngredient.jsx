@@ -27,7 +27,6 @@ const CreateRecipe = () => {
     'อาหารแช่แข็ง',
     'อื่นๆ'
   ];
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
