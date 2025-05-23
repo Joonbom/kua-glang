@@ -1,14 +1,15 @@
 const express = require('express');
 const router = express.Router();
 
-//const receive = require("../controllers/post/receive.controller")
 const createShareFood = require("../controllers/share/createShare.controller")
-//const updatePost = require("../controllers/post/updatePost.controller")
-//const deletePost = require("../controllers/post/deletePost.controller")
+const deleteShare = require("../controllers/share/deleteShare.controller")
+const updateShare = require("../controllers/share/updateShare.controller")
+const  getShareInterest  = require("../controllers/share/interestedShare.controller");
 
+router.get('/:shareId/interest/:userId', getShareInterest);
 router.post('/:userId/:foodId', createShareFood);
-//router.post('/:userId', createPost);
-//router.put('/:userId/:postId', updatePost);
-//router.delete('/:userId/:postId', deletePost);
+router.delete('/:shareId', deleteShare);
+router.put('/:userId/:foodId/:shareId', updateShare);
+
 
 module.exports = router;
