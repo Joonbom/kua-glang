@@ -34,7 +34,7 @@ h1 {
 label { 
   display: block;
   margin-bottom: 10px;
-  color: var(--primary);
+  color: #222 !important; /* เปลี่ยนเป็นสีดำ */
   font-size: 16px;
   font-weight: 400;
 }
@@ -51,6 +51,7 @@ textarea {
   font-size: 14px;
   font-family: 'Bai Jamjuree', sans-serif;
   box-sizing: border-box; /* Include padding and border in width calculation */
+  color: #222 !important; /* สีตัวหนังสือใน input เป็นดำ */
 }
 
 input[type="file"] {
@@ -128,6 +129,7 @@ button {
   padding: 10px; /* Add padding inside the preview block */
   background-color: #f9f9f9; /* Light background for contrast */
   margin-bottom: 20px; /* Add spacing below the preview block to separate it from buttons */
+  color: #222 !important;
 }
 
 .image-preview img {

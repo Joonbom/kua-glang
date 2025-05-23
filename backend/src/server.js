@@ -1,6 +1,8 @@
 const express = require('express');
 const awsServerlessExpress = require('aws-serverless-express');
 const dotenv = require('dotenv');
+const folderRoutes = require('./routes/folderRoutes');
+const foodRoutes = require('./routes/foodRoutes');
 
 dotenv.config({ path: '.env' });
 
@@ -9,6 +11,8 @@ const port = 3000;
 const server = awsServerlessExpress.createServer(app);
 
 app.use(express.json());
+app.use(folderRoutes);
+app.use(foodRoutes);
 
 app.get('/', (req, res) => {
     res.json({
