@@ -1,0 +1,120 @@
+body {
+  font-family: 'Bai Jamjuree', sans-serif;
+  background-color: #fff0f5;
+  margin: 0;
+}
+
+.profile-page {
+  padding: 16px;
+}
+
+.profile-header {
+  text-align: center;
+}
+
+.profile-img {
+  width: 96px;
+  height: 96px;
+  background-color: #ccc;
+  border-radius: 50%;
+  margin: 0 auto 8px;
+}
+
+.profile-name {
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.profile-bio {
+  font-size: 0.9rem;
+  color: #555;
+  margin-bottom: 8px;
+}
+
+.line-info {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+
+.tab-buttons {
+  display: flex;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+.tab-buttons button {
+  flex: 1;
+  padding: 10px;
+  background: #f8a5c2;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.tab-buttons .active {
+  background: #f06292;
+  color: white;
+}
+
+.period-selector {
+  display: flex;
+  gap: 8px;
+  justify-content: space-around;
+  margin: 16px 0;
+}
+
+.period-selector button {
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid #f06292;
+  background: white;
+  color: #f06292;
+}
+
+.period-selector .active {
+  background: #f06292;
+  color: white;
+}
+
+.profile-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.profile-stats .stat-card {
+  background: white;
+  border-radius: 16px;
+  padding: 16px;
+  text-align: center;
+}
+
+.profile-stats .stat-card.full {
+  grid-column: span 2;
+}
+
+.share-btn {
+  width: 100%;
+  background: #f06292;
+  color: white;
+  border: none;
+  border-radius: 999px;
+  padding: 12px;
+  font-weight: bold;
+  margin-bottom: 72px;
+}
+
+.bottom-navbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #f06292;
+  color: white;
+  display: flex;
+  justify-content: space-around;
+  padding: 8px 0;
+}
