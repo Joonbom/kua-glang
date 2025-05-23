@@ -8,6 +8,7 @@ const  getShareInterest  = require("../controllers/share/interestedList.controll
 const addInterest = require("../controllers/share/addInterest.controller");
 const receiveShare = require("../controllers/share/approvedShare.controller")
 const getSharesByUser = require("../controllers/share/getMyshare.controller")
+const getAllShares = require("../controllers/share/getShare.controller")
 
 router.post('/:shareId/interest/:userId', addInterest);
 router.post('/:shareId/receive/:userId', receiveShare)
@@ -16,6 +17,6 @@ router.post('/:userId/:foodId', createShareFood);
 router.delete('/:shareId', deleteShare);
 router.put('/:userId/:foodId/:shareId', updateShare);
 router.get('/:userId', getSharesByUser);
-
+router.get('/', getAllShares);
 
 module.exports = router;

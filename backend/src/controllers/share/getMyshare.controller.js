@@ -52,10 +52,10 @@ const getSharesByUser = async (req, res) => {
         );
 
 
-        console.log(shares)
+        //console.log(shares)
 
         const validShares = shareResponses.filter(Boolean);
-
+        console.log(userId)
         // 3. Get user profile
         const profileData = await ddb.send(new GetCommand({
             TableName: TABLE_NAME,
@@ -65,9 +65,11 @@ const getSharesByUser = async (req, res) => {
             }
         }));
 
+
+
         const profile = profileData.Item || {};
         const { username, profile_url, line_id } = profile;
-
+        
         // 4. Combine and return response
         const fullResponse = validShares.map(share => ({
             ...share,
@@ -75,7 +77,7 @@ const getSharesByUser = async (req, res) => {
             profile_url,
             line_id
         }));
-        //console.log('✅ Final share object before response:', fullResponse);
+        console.log('✅ Final share object before response:', fullResponse);
 
         res.json(fullResponse);
     } catch (err) {
