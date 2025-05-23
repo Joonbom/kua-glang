@@ -1,4 +1,3 @@
-
 const { PutItemCommand } = require('@aws-sdk/client-dynamodb');
 
 const client = require("../../utils/database");
