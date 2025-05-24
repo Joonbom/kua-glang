@@ -51,6 +51,14 @@ body {
   margin: 0;
 }
 
+.profile-title {
+  font-size: 2rem;
+  font-weight: bold;
+  text-align: left;
+  margin-bottom: 12px;
+  padding-left: 8px;
+}
+
 .profile-header {
   text-align: center;
 }

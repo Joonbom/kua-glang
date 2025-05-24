@@ -9,7 +9,7 @@ const ProfileStats = () => {
   const userId = localStorage.getItem('userId');
 
   useEffect(() => {
-    fetch(`/api/user/stat/${userId}`)
+    fetch(`/profile/stat/${userId}`)
       .then((res) => {
         if (!res.ok) throw new Error('โหลดข้อมูลสถิติไม่สำเร็จ');
         return res.json();
@@ -22,6 +22,13 @@ const ProfileStats = () => {
         });
       })
       .catch((err) => console.error(err));
+
+    //const mockStat = {
+    //  share_quantity: 3,
+    //  reduce_foodwaste: 25,
+    //  no_expired: 10,
+    //};
+    //setStat(mockStat);
   }, []);
 
   if (!stat) return <div>กำลังโหลดข้อมูลสถิติ...</div>;

@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import ProfileHeader from "../../components/ProfilePage/ProfileHeader";
-import PeriodSelector from "../../components/ProfilePage/PeriodSelector";
 import ProfileStat from "../../components/ProfilePage/ProfileStats";
 import MenuBar from "../../components/MenuBar/MenuBar";
 import ToggleButtons from "../../components/ProfilePage/togglebutton";
