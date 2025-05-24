@@ -14,17 +14,24 @@ app.use(express.json());
 app.use(folderRoutes);
 app.use(foodRoutes);
 
-app.get('/', (req, res) => {
-    res.json({
-        status: 'ok',
-        message: 'Backend service Lambda Express on.',
-        serviceName: 'KuaGlangAPI',
-        timestamp: new Date().toISOString(),
-    });
+app.use("/post", require("./routes/post.route"))
+app.use("/share", require("./routes/share.route"))
+app.use("/profile", require("./routes/profile.route"))
+app.use("/history", require("./routes/history.route"))
+app.use("/ranking", require("./routes/rank.route"))
+
+app.get("/", (req, res) => {
+  res.json({
+    status: "ok",
+    message: "Backend service Lambda Express on.",
+    serviceName: "KuaGlangAPI",
+    timestamp: new Date().toISOString(),
+  });
 });
 
 app.listen(port, () => {
-    console.log(`Backend service listening on port ${port}`);
+  console.log(`Backend service listening on port ${port}`);
 });
 
-exports.handler = (event, context) => awsServerlessExpress.proxy(server, event, context);
+exports.handler = (event, context) =>
+  awsServerlessExpress.proxy(server, event, context);
