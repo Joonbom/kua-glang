@@ -1,10 +1,12 @@
 const express = require('express');
 const router = express.Router();
 
-const receive = require("../controllers/post/receive.controller")
-const createPost = require("../controllers/post/post.controller")
-const updatePost = require("../controllers/post/updatePost.controller")
-const deletePost = require("../controllers/post/deletePost.controller")
+const {
+  receive,
+  createPost,
+  updatePost,
+  deletePost
+} = require('../controllers/post/post.controller');
 
 router.post('/receive/:userId', receive);
 router.post('/:userId', createPost);

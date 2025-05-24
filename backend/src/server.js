@@ -1,8 +1,10 @@
 const express = require('express');
 const awsServerlessExpress = require('aws-serverless-express');
 const dotenv = require('dotenv');
+
 const folderRoutes = require('./routes/folderRoutes');
 const foodRoutes = require('./routes/foodRoutes');
+const authRoutes = require('./routes/auth.route'); // ✅ เพิ่ม
 
 dotenv.config({ path: '.env' });
 
@@ -13,6 +15,7 @@ const server = awsServerlessExpress.createServer(app);
 app.use(express.json());
 app.use(folderRoutes);
 app.use(foodRoutes);
+app.use(authRoutes); // ✅ เพิ่ม
 
 app.use("/post", require("./routes/post.route"))
 app.use("/share", require("./routes/share.route"))
