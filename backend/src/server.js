@@ -3,10 +3,6 @@ const awsServerlessExpress = require('aws-serverless-express');
 const dotenv = require('dotenv');
 const cors = require("cors");
 
-const folderRoutes = require('./routes/folderRoutes');
-const foodRoutes = require('./routes/foodRoutes');
-const authRoutes = require('./routes/auth.route'); // ✅ เพิ่ม
-
 dotenv.config({ path: '.env' });
 
 const app = express();
@@ -15,15 +11,16 @@ const server = awsServerlessExpress.createServer(app);
 
 app.use(cors());
 app.use(express.json());
-app.use(folderRoutes);
-app.use(foodRoutes);
-app.use(authRoutes); // ✅ เพิ่ม
 
+const authRoutes = require('./routes/auth.route');
+app.use(authRoutes);
 app.use("/post", require("./routes/post.route"))
 app.use("/share", require("./routes/share.route"))
 app.use("/profile", require("./routes/profile.route"))
 app.use("/history", require("./routes/history.route"))
 app.use("/ranking", require("./routes/rank.route"))
+app.use("/folder", require("./routes/folder.route"))
+app.use("/food", require("./routes/food.route"))
 
 app.get("/", (req, res) => {
   res.json({
