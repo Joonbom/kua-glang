@@ -39,7 +39,7 @@ export default function Login() {
             <input
               type="text"
               name="username"
-              placeholder="อีเมล"
+              placeholder="ชื่อผู้ใช้"
               value={form.username}
               onChange={handleChange}
               className="bg-transparent outline-none w-full placeholder:text-pink-600"

@@ -1,7 +1,12 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const { loginHandler } = require('../controllers/auth/login.controller');
 
-router.post('/login', loginHandler);
+const login = require("../controllers/auth/login.controller");
+const registerController = require("../controllers/auth/register.controller.js");
+console.log("typeof register =", typeof registerController);
+console.log("register =", registerController)
+
+router.post("/login", login);
+router.post("/register", registerController);
 
 module.exports = router;

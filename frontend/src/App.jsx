@@ -5,6 +5,7 @@ import CreateRecipe from './components/CreateRecipe/CreateRecipe.jsx';
 import EditIngredient from './components/EditIngredient/EditIngredient.jsx';
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import Home from "./pages/Home"; // ✅ import หน้าใหม่
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
       {/* เพิ่ม Route อื่นๆ ตามต้องการ */}
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/home" element={<Home />} /> {/* ✅ เพิ่ม path หลัง login */}
     </Routes>
   );
 }

@@ -1,6 +1,7 @@
 const express = require('express');
 const awsServerlessExpress = require('aws-serverless-express');
 const dotenv = require('dotenv');
+const cors = require("cors");
 
 const folderRoutes = require('./routes/folderRoutes');
 const foodRoutes = require('./routes/foodRoutes');
@@ -12,6 +13,7 @@ const app = express();
 const port = 3000;
 const server = awsServerlessExpress.createServer(app);
 
+app.use(cors());
 app.use(express.json());
 app.use(folderRoutes);
 app.use(foodRoutes);
