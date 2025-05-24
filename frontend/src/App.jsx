@@ -5,6 +5,7 @@ import CreateRecipe from './components/CreateRecipe/CreateRecipe.jsx';
 import EditIngredient from './components/EditIngredient/EditIngredient.jsx';
 import ProfilePage from './pages/ProfilePage/ProfilePage.jsx';
 import EditProfilePage from './pages/ProfilePage/EditProfilePage.jsx';
+import EditFieldPage from './pages/ProfilePage/EditFieldPage.jsx';
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
       <Route path="/edit-ingredient/:id" element={<EditIngredient />} />
       <Route path="/profile" element={<ProfilePage />} />
       <Route path="/edit-profile" element={<EditProfilePage />} />
+      <Route path="/edit/:field" element={<EditFieldPage />} />
       {/* เพิ่ม Route อื่นๆ ตามต้องการ */}
     </Routes>
   );
