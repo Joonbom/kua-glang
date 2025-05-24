@@ -1,19 +1,21 @@
-const dynamoDb = require('../utils/database');
+const dynamoDb = require('../../utils/database');
+const { PutItemCommand, QueryCommand } = require("@aws-sdk/client-dynamodb");
 
-const TABLE_NAME = 'kua-main';
+const TABLE_NAME = 'kua-glang';
 
 exports.listFolders = async (req, res) => {
-  const { userid } = req.params;
+  const { userId } = req.params;
   const params = {
     TableName: TABLE_NAME,
     KeyConditionExpression: 'PK = :pk and begins_with(SK, :sk)',
     ExpressionAttributeValues: {
-      ':pk': `USER#${userid}`,
-      ':sk': 'FOLDER#',
+      ':pk': { S: `USER#${userId}` },
+      ':sk': { S: 'FOLDER#' },
     },
   };
   try {
-    const data = await dynamoDb.query(params).promise();
+    const command = new QueryCommand(params);
+    const data = await dynamoDb.send(command);
     res.json(data.Items);
   } catch (err) {
     res.status(500).json({ 
@@ -25,26 +27,35 @@ exports.listFolders = async (req, res) => {
 };
 
 exports.addFolder = async (req, res) => {
-  const { userid } = req.params;
+  // ใช้ userId ให้ตรงกับ route (userId ไม่ใช่ userid)
+  const { userId } = req.params;
   const folderId = Date.now().toString();
+
+  // Debug log
+  console.log('addFolder params:', req.params);
+  console.log('addFolder body:', req.body);
+
+  let quntity = req.body.quntity || req.body.quantity || "00";
+
+  // แปลงค่าทุก field เป็นรูปแบบ DynamoDB
   const item = {
-    PK: `USER#${userid}`,
-    SK: `FOLDER#${folderId}`,
-    folderId,
-    userId: userid, // ใช้ userId (I ตัวใหญ่) ให้ตรงกับ API spec
-    ...req.body,
-    created_at: new Date().toISOString(),
+    PK: { S: `USER#${userId}` },
+    SK: { S: `FOLDER#${folderId}` },
+    folderId: { S: folderId },
+    userId: { S: userId },
+    folderName: { S: req.body.folderName || "" },
+    description: { S: req.body.description || "" },
+    quntity: { S: quntity },
+    img_url: { S: req.body.img_url || "" },
+    created_at: { S: new Date().toISOString() }
   };
-  // ensure field quntity (ไม่ใช่ quantity) ตาม API
-  if (item.quantity && !item.quntity) {
-    item.quntity = item.quantity;
-    delete item.quantity;
-  }
+
   const params = { TableName: TABLE_NAME, Item: item };
   try {
-    await dynamoDb.put(params).promise();
+    await dynamoDb.send(new PutItemCommand(params));
     res.status(201).json(item);
   } catch (err) {
+    console.error('Failed to add folder', err);
     res.status(500).json({ 
       error: 'Failed to add folder',
       details: err.message,

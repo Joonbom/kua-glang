@@ -1,5 +1,5 @@
 const express = require('express');
-const foodController = require('../controllers/foodController');
+const foodController = require('../controllers/food/foodController');
 const router = express.Router();
 
 router.get('/food/:folderid', foodController.listFoods);

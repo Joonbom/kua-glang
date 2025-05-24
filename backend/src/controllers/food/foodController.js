@@ -1,6 +1,6 @@
-const dynamoDb = require('../utils/database');
+const dynamoDb = require('../../utils/database');
 
-const TABLE_NAME = 'kua-main';
+const TABLE_NAME = 'kua-glang';
 
 exports.listFoods = async (req, res) => {
   const { folderid } = req.params;
