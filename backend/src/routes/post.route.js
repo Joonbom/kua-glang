@@ -1,5 +1,6 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
+
 
 const createPost = require("../controllers/post/post.controller")
 const updatePost = require("../controllers/post/updatePost.controller")
@@ -18,5 +19,6 @@ router.delete('/:userId/:postId', deletePost);
 router.post('/like/:userId/:postId', likePost);
 router.post('/post/:postId/comment/:userId', commentPost);
 router.post('/post/:cid/comment/:userId', likeComment);
+
 
 module.exports = router;
