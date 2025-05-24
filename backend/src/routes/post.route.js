@@ -17,8 +17,8 @@ router.post('/:userId', createPost);
 router.put('/:userId/:postId', updatePost);
 router.delete('/:userId/:postId', deletePost);
 router.post('/like/:userId/:postId', likePost);
-router.post('/post/:postId/comment/:userId', commentPost);
-router.post('/post/:cid/comment/:userId', likeComment);
+router.post('/:postId/comment/:userId', commentPost);
+router.post('/like/:userId/comment/:cId', likeComment);
 
 
 module.exports = router;
