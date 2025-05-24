@@ -7,7 +7,7 @@ const {
 
 const dynamoDb = new DynamoDBClient({
   region: "us-east-1",
-  endpoint: "http://dynamodb:8000",
+  endpoint: "http://kua-dynamodb:8000",
   credentials: {
     accessKeyId: "dummy",
     secretAccessKey: "dummy",
@@ -15,7 +15,7 @@ const dynamoDb = new DynamoDBClient({
 });
 
 const params = {
-  TableName: "kua-glang",
+  TableName: "kua-glang", // เปลี่ยนกลับเป็น kua-glang
   AttributeDefinitions: [
     { AttributeName: "PK", AttributeType: "S" },
     { AttributeName: "SK", AttributeType: "S" },
@@ -39,13 +39,18 @@ const params = {
 const createTable = async () => {
   try {
     const data = await dynamoDb.send(new CreateTableCommand(params));
-    console.log("Table created", data);
+    console.log("✅ Table created:", data.TableDescription.TableName);
   } catch (err) {
-    console.error(err);
+    if (err.name === "ResourceInUseException") {
+      console.warn("⚠️ Table already exists");
+    } else {
+      console.error("❌ Error creating table:", err);
+      process.exit(1);
+    }
   }
-};
 
-createTable();
+  insertDataInBatches(items);
+};
 
 const items = JSON.parse(readFileSync("./mock_data.json", "utf8"));
 
@@ -54,23 +59,20 @@ const insertDataInBatches = async (items, batchSize = 25) => {
     const batch = items.slice(i, i + batchSize);
     const command = new BatchWriteItemCommand({
       RequestItems: {
-        ["kua-glang"]: batch,
+        "kua-glang": batch,
       },
     });
 
     try {
       const res = await dynamoDb.send(command);
-      console.log("✅ Batch ${i / batchSize + 1} inserted");
+      console.log(`✅ Batch ${i / batchSize + 1} inserted`);
       if (Object.keys(res.UnprocessedItems).length > 0) {
-        console.warn(
-          ":warning: มีบางรายการไม่ถูกประมวลผล:",
-          res.UnprocessedItems
-        );
+        console.warn("⚠️ Unprocessed Items:", res.UnprocessedItems);
       }
     } catch (err) {
-      console.error("❌ Error inserting batch ${i / batchSize + 1}`", err);
+      console.error(`❌ Error inserting batch ${i / batchSize + 1}`, err);
     }
   }
 };
 
-insertDataInBatches(items);
+createTable();
