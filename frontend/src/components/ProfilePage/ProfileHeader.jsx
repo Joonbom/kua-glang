@@ -1,21 +1,30 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import './Profile.css'
-//This page display information about user data such as ProfilePicture
-//Username, Bio, LineID, and edit
-//**THIS IS NOT FINAL VERSION JUST MOCK UP DATA FOR TESTING**
-//**REQUIRE BACKEND API FOR GET USER PERSONAL DATA (profilepic,username,lineID) TO DISPLAY ** 
-const ProfileHeader = () => {
-    return (
-        <div className='profile-header'>
-            <div className='profile-img'/>
-            <div className='profile-name'>Prapaporn Jaidee</div>
-            <div className='profile-bio'>คนหล่อประจำแอปแต่อยากกินของเหลือ</div>
-            <div className='line-info'>
-                <span className='line-id'>LINE: neon2548</span>
-                <button className='edit-btn'>✏️</button>
-            </div>
-        </div>
-    );
-};
+export default function ProfileHeader() {
+  const [user, setUser] = useState(null);
+  const userId = localStorage.getItem('userId');
 
-export default ProfileHeader;
+  useEffect(() => {
+    fetch(`/api/user/${userId}`)
+      .then(response => {
+        if (!response.ok) throw new Error('เกิดข้อผิดพลาดในการโหลดข้อมูล');
+        return response.json();
+      })
+      .then(data => setUser(data))
+      .catch(error => console.error(error));
+  }, []);
+
+  if (!user) return <div>กำลังโหลด...</div>;
+
+  return (
+    <div className="profile-header">
+      <img src={user.profile_url} alt="profile" className="profile-img" />
+      <div className="profile-name">{user.username}</div>
+      <div className="profile-bio">{user.bio}</div>
+      <div className="line-info">
+        <span className="line-id">LINE: {user.line_id}</span>
+        <button className="edit-btn">✏️</button>
+      </div>
+    </div>
+  );
+}

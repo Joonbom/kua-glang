@@ -3,6 +3,7 @@ import ProfileHeader from "../../components/ProfilePage/ProfileHeader";
 import PeriodSelector from "../../components/ProfilePage/PeriodSelector";
 import ProfileStat from "../../components/ProfilePage/ProfileStats";
 import MenuBar from "../../components/MenuBar/MenuBar";
+import ToggleButtons from "../../components/ProfilePage/togglebutton";
 import './ProfilePage.css';
 
 const ProfilePage = () => {
@@ -11,25 +12,10 @@ const ProfilePage = () => {
     return (
         <div className='profile-page'>
             <ProfileHeader />
-
-            <div className="tab-buttons">
-                <button
-                    className={selectedTab === 'post' ? 'active' : ''}
-                    onClick={() => setSelectedTab('post')}
-                >
-                    โพสต์
-                </button>
-                <button
-                    className={selectedTab === 'stats' ? 'active' : ''}
-                    onClick={() => setSelectedTab('stats')}
-                >
-                    สถิติ
-                </button>
-            </div>
-
+            <ToggleButtons selected={selectedTab} onSelect={setSelectedTab} />
             {selectedTab === 'stats' && (
                 <>
-                <PeriodSelector />
+                {/* <PeriodSelector /> */}
                 <ProfileStat />
                 <button className="share-btn">แชร์ให้เพื่อนของคุณเลย</button>
                 </>
