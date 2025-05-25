@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useState } from 'react';
 import './RecipeDetail.css';
 import { FaSearch, FaTimes, FaBell, FaArrowLeft } from 'react-icons/fa';
 import { useNavigate, useParams } from 'react-router-dom';
 import MenuBar from '../MenuBar/MenuBar.jsx';
+
 
 const categories = [
   { label: 'ทั้งหมด', value: '' },
@@ -16,6 +16,7 @@ const categories = [
 ];
 
 const RecipeDetail = () => {
+
   const { folderId } = useParams();
   const [items, setItems] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -70,15 +71,18 @@ const RecipeDetail = () => {
     fetchData();
   }, [folderId]);
 
+
   const handleSearchChange = (e) => setSearchQuery(e.target.value);
   const handleClearSearch = () => setSearchQuery("");
   const handleAddItem = () => navigate('/create-recipe');
   const handleIngredientClick = (id) => navigate(`/edit-ingredient/${id}`);
 
+
   const filteredItems = items.filter((item) =>
     item.foodName.toLowerCase().includes(searchQuery.toLowerCase()) &&
     (selectedCategory === '' || item.category === selectedCategory)
   );
+
 
   return (
     <div className="recipe-detail">
@@ -128,6 +132,7 @@ const RecipeDetail = () => {
 
       {/* Items */}
       <div className="items-list">
+
         {filteredItems.map((item) => (
           <div key={item.foodId} className="item-card" onClick={() => handleIngredientClick(item.foodId)}>
             <img src={item.img_url} alt={item.foodName} className="item-img" />
@@ -147,7 +152,6 @@ const RecipeDetail = () => {
           </div>
         ))}
       </div>
-
       <MenuBar />
     </div>
   );
