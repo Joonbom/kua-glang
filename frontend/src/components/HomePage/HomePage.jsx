@@ -13,11 +13,21 @@ const HomePage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate(); // ใช้ useNavigate สำหรับการนำทาง
 
+<<<<<<< HEAD
+  useEffect(() => {
+    // TODO: เปลี่ยน userId ให้เหมาะสม (mock เป็น 1)
+    const userId = 1;
+    axios.get(`/folder/${userId}`)
+      .then(res => setRecipes(Array.isArray(res.data) ? res.data : []))
+      .catch(err => console.error('fetch error', err));
+  }, []);
+=======
   const recipes = [
     { id: 1, name: "สปาเก็ตตี้สูตรเหล่ากง", img: spaghettiImg, date: "07 มกราคม 2025", quantity: "8", description: "วัตถุดิบสำหรับทำสปาเก็ตตี้ซอสมะเขือเทศ🍅" },
     { id: 2, name: "ซาลาเปากลมๆ", img: salapaoImg, date: "14 มีนาคม 2025", quantity: "4", description: "ติ่มซำสูตรโบราณจากอาม่า" },
     { id: 3, name: "อาหารไหว้เจ้าแต่เรากิน", img: chinesetableImg, date: "14 มีนาคม 2025", quantity: "12", description: "แม่หิ้วมาจากบ้านอาม่าแช่ตู้เย็นในทัปเปอร์แวร์" },
   ];
+>>>>>>> 73d5cc3 (rank)
 
   const handleLocationChange = (e) => {
     setSelectedLocation(e.target.value);

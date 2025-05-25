@@ -4,8 +4,7 @@ import './EditProfilePage.css'; // ใช้สี #D34670 เป็นธีม
 
 export default function EditProfilePage() {
   const [userData, setUserData] = useState(null);
-  //const userId = localStorage.getItem('userId'); // หรือจาก context
-  const userId = 'user003'
+  const userId = localStorage.getItem('userId') || 'user003'; // หรือจาก context
   //const mockData = {
   //username: 'mock_user',
   //profile_url: '../../assets/ProfilePage/demoprofile.jpg',
@@ -41,7 +40,6 @@ const handleSelect = (field) => {
   console.log('เลือกแก้ไข:', field);
 // คุณสามารถต่อยอดให้เปิดฟอร์มตาม field ที่เลือกได้ที่นี่
 };
-  
 
 return (
     <div className="edit-profile-page">
@@ -51,7 +49,6 @@ return (
         <div className="edit-profile-img" />
         <div className="edit-profile-displayname">{userData.username}</div>
       </div>
-
       <EditProfileSection onSelect={handleSelect} />
     </div>
   );
