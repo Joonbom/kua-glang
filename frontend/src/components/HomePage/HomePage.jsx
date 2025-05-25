@@ -1,19 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './HomePage.css';
 import { FaSignOutAlt, FaSearch, FaTimes } from 'react-icons/fa'; // ไอคอนจาก React Icons
 import { useNavigate } from 'react-router-dom'; // เพิ่ม useNavigate
 import '@fontsource/bai-jamjuree'; // Add Bai Jamjuree font import
 import MenuBar from '../MenuBar/MenuBar.jsx';
-import spaghettiImg from '../../assets/spaghetti.png';
-import salapaoImg from '../../assets/salapao.png';
-import chinesetableImg from '../../assets/chinesetable.png';
+import axios from 'axios';
 
 const HomePage = () => {
   const [selectedLocation, setSelectedLocation] = useState("Accom park");
   const [searchQuery, setSearchQuery] = useState("");
+  const [recipes, setRecipes] = useState([]); // Add recipes state
   const navigate = useNavigate(); // ใช้ useNavigate สำหรับการนำทาง
 
-<<<<<<< HEAD
   useEffect(() => {
     // TODO: เปลี่ยน userId ให้เหมาะสม (mock เป็น 1)
     const userId = 1;
@@ -21,13 +19,6 @@ const HomePage = () => {
       .then(res => setRecipes(Array.isArray(res.data) ? res.data : []))
       .catch(err => console.error('fetch error', err));
   }, []);
-=======
-  const recipes = [
-    { id: 1, name: "สปาเก็ตตี้สูตรเหล่ากง", img: spaghettiImg, date: "07 มกราคม 2025", quantity: "8", description: "วัตถุดิบสำหรับทำสปาเก็ตตี้ซอสมะเขือเทศ🍅" },
-    { id: 2, name: "ซาลาเปากลมๆ", img: salapaoImg, date: "14 มีนาคม 2025", quantity: "4", description: "ติ่มซำสูตรโบราณจากอาม่า" },
-    { id: 3, name: "อาหารไหว้เจ้าแต่เรากิน", img: chinesetableImg, date: "14 มีนาคม 2025", quantity: "12", description: "แม่หิ้วมาจากบ้านอาม่าแช่ตู้เย็นในทัปเปอร์แวร์" },
-  ];
->>>>>>> 73d5cc3 (rank)
 
   const handleLocationChange = (e) => {
     setSelectedLocation(e.target.value);
