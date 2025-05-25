@@ -15,16 +15,6 @@ const HomePage = () => {
   const navigate = useNavigate(); // ใช้ useNavigate สำหรับการนำทาง
 
   useEffect(() => {
-    // TODO: เปลี่ยน userId ให้เหมาะสม (mock เป็น 1)
-    const userId = 1;
-    axios.get(`/folder/${userId}`)
-      .then(res => setRecipes(Array.isArray(res.data) ? res.data : []))
-      .catch(err => console.error('fetch error', err));
-  }, []);
-
-  const handleLocationChange = (e) => {
-    setSelectedLocation(e.target.value);
-  };
 
     const userId = localStorage.getItem("userId");
 
