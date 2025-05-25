@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import './HomePage.css';
-import { FaSignOutAlt, FaSearch, FaTimes } from 'react-icons/fa'; // ไอคอนจาก React Icons
-import { useNavigate } from 'react-router-dom'; // เพิ่ม useNavigate
-import '@fontsource/bai-jamjuree'; // Add Bai Jamjuree font import
+import { FaSignOutAlt, FaSearch, FaTimes } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
+import '@fontsource/bai-jamjuree';
 import MenuBar from '../MenuBar/MenuBar.jsx';
 import axios from 'axios';
+
+const URL = "http://localhost:3000";
 
 const HomePage = () => {
   const [selectedLocation, setSelectedLocation] = useState("Accom park");
@@ -24,42 +26,80 @@ const HomePage = () => {
     setSelectedLocation(e.target.value);
   };
 
-  const handleSearchChange = (e) => {
-    setSearchQuery(e.target.value); // Update searchQuery when typing
-  };
+    const userId = localStorage.getItem("userId");
 
-  const handleClearSearch = () => {
-    setSearchQuery(""); // Clear search query
-  };
+    if (!userId) {
+      setUsername("Joonbom");
+      setRecipes([
+        {
+          folderId: '1',
+          folderName: 'ข้าวผัดหมู',
+          img_url: 'https://insanelygoodrecipes.com/wp-content/uploads/2024/09/pork-fried-rice-skillet.jpg',
+          quantity: '3',
+          created_at: '2024-12-01T00:00:00.000Z',
+          description: 'อาหารจานด่วน ทำง่าย อร่อย'
+        },
+        {
+          folderId: '2',
+          folderName: 'ต้มยำกุ้ง',
+          img_url: 'https://i.pinimg.com/736x/b0/0c/b5/b00cb5d505446f4c3d86c0cc4a19bbde.jpg',
+          quantity: '5',
+          created_at: '2024-11-21T00:00:00.000Z',
+          description: 'เมนูรสจัดจ้าน แบบไทยแท้'
+        }
+      ]);
+      return;
+    }
 
+    // ถ้ามี userId ให้ดึงข้อมูลจริง
+    axios.get(`${URL}/profile/${userId}`)
+      .then((res) => setUsername(res.data.username))
+      .catch((err) => {
+        console.error("Profile fetch error:", err);
+        setUsername("Joonbom"); // fallback
+      });
+
+    axios.get(`${URL}/folder/${userId}`)
+      .then((res) => setRecipes(Array.isArray(res.data) ? res.data : []))
+      .catch((err) => {
+        console.error("Recipes fetch error:", err);
+        setRecipes([]); // fallback
+      });
+  }, []);
+
+
+  const handleLocationChange = (e) => setSelectedLocation(e.target.value);
+  const handleSearchChange = (e) => setSearchQuery(e.target.value);
+  const handleClearSearch = () => setSearchQuery("");
   const handleLogout = () => {
     alert("คุณได้ทำการล็อกเอาท์แล้ว");
+    localStorage.removeItem("userId");
+    navigate("/login");
   };
+  const handleRecipeClick = (id) => navigate(`/recipe/${id}`);
 
-  const handleRecipeClick = (id) => {
-    navigate(`/recipe/${id}`); // นำทางไปยังหน้า RecipeDetail พร้อม id
-  };
-
-  // Filter recipes based on searchQuery
   const filteredRecipes = recipes.filter((recipe) =>
-    recipe.name.toLowerCase().includes(searchQuery.toLowerCase()) // กรองข้อมูลตาม query
+
+    recipe.folderName.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
     <div className="App">
-      {/* Header Section */}
       <header className="header-homepage">
-        <div className="user-name">Joonbom</div>
+        <div className="user-name">{username}</div>
         <div className="location">
           <span className="location-label">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: '6px', color: 'var(--primary)'}}><circle cx="12" cy="10" r="3"/><path d="M12 2C7.03 2 2.5 6.03 2.5 11.5c0 5.47 9.5 10.5 9.5 10.5s9.5-5.03 9.5-10.5C21.5 6.03 16.97 2 12 2z"/></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px', color: 'var(--primary)' }}>
+              <circle cx="12" cy="10" r="3" />
+              <path d="M12 2C7.03 2 2.5 6.03 2.5 11.5c0 5.47 9.5 10.5 9.5 10.5s9.5-5.03 9.5-10.5C21.5 6.03 16.97 2 12 2z" />
+            </svg>
             {selectedLocation}
           </span>
-          <select 
+          <select
             value={selectedLocation}
             onChange={handleLocationChange}
             className="location-dropdown"
-            style={{position: 'absolute', left: 0, top: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer'}}
+            style={{ position: 'absolute', left: 0, top: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }}
           >
             <option value="Accom park">Accom park</option>
             <option value="Park Central">Park Central</option>
@@ -72,26 +112,24 @@ const HomePage = () => {
       </header>
       <hr className="header-divider" />
 
-      {/* Search Bar */}
-      <div className="search-container">
-        <FaSearch className="search-icon" />
-        <input
-          type="text"
-          className="search-bar"
-          placeholder="ค้นหา"
-          value={searchQuery}
-          onChange={handleSearchChange}
-          style={{ background: '#fff', color: '#333' }}
-        />
-        {searchQuery && <FaTimes className="clear-icon" onClick={handleClearSearch} />}
+      <div className="input-group">
+        <div className="search-section">
+          <div className="search-box">
+            <FaSearch className="search-icon" />
+            <input
+              type="text"
+              placeholder="ค้นหา"
+              value={searchQuery}
+              onChange={handleSearchChange}
+            />
+            {searchQuery && (
+              <FaTimes className="clear-icon" onClick={handleClearSearch} />
+            )}
+          </div>
+          <button className="add-new-btn">เพิ่มรายการใหม่</button>
+        </div>
       </div>
 
-      {/* Add Item Button */}
-      <div className="add-item">
-        <button className="add-item-btn">เพิ่มรายการใหม่</button>
-      </div>
-
-      {/* Recipe List Section */}
       <div className="recipe-container">
         {filteredRecipes.map((recipe) => (
           <div key={recipe.id} className="recipe-item" onClick={() => handleRecipeClick(recipe.id)}>
@@ -99,12 +137,14 @@ const HomePage = () => {
               <img src={recipe.img} alt={recipe.name} className="recipe-img" />
             </div>
             <div className="recipe-details">
-              <h3 className="recipe-name">{recipe.name} <span style={{float:'right',fontWeight:400}}>{recipe.quantity.padStart(2,'0')}</span></h3>
-              <p className="recipe-date" style={{color:'#888',margin:'4px 0 0 0',fontWeight:400,fontSize:'1rem'}}>สร้างเมื่อ {recipe.date}</p>
-              <p className="recipe-description" style={{ color: '#111', margin:'4px 0 0 0' }}>{recipe.description}</p>
-            </div>
-            <div className="arrow">
-              <span>→</span>
+              <h3 className="recipe-name-wrapper">
+                <span className="recipe-name">{recipe.folderName}</span>
+                <span className="recipe-quantity">
+                  {recipe.quantity?.padStart(2, '0')}
+                </span>
+              </h3>
+              <p className="recipe-date">สร้างเมื่อ {recipe.created_at ? new Date(recipe.created_at).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: '2-digit' }) : ''}</p>
+              <p className="recipe-description">{recipe.description}</p>
             </div>
           </div>
         ))}
