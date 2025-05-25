@@ -10,18 +10,43 @@
 .leaderboard-table {
     width: 100%;
     border-collapse: collapse;
-    table-layout: fixed;
+    table-layout: auto;
 }
 
 .leaderboard-head-row th {
     padding: 12px 16px;
     text-align: center;
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    overflow: visible;
+    text-overflow: unset;
     color: white;
     font-weight: bold;
     font-size: 15px;
+}
+
+
+/* ปรับขนาดแต่ละคอลัมน์ */
+
+.leaderboard-head-row th:nth-child(1),
+.leaderboard-row td:nth-child(1) {
+    text-align: center;
+    vertical-align: middle;
+    width: 10%;
+    min-width: 50px;
+}
+
+.leaderboard-head-row th:nth-child(2),
+.leaderboard-row td:nth-child(2) {
+    width: 60%;
+    min-width: 160px;
+}
+
+.leaderboard-head-row th:nth-child(3),
+.leaderboard-row td:nth-child(3) {
+    text-align: center;
+    vertical-align: middle;
+    width: 30%;
+    min-width: 100px;
 }
 
 .leaderboard-scroll {
@@ -50,6 +75,11 @@
     text-overflow: ellipsis;
     font-size: 14px;
     transition: background-color 0.2s ease-in-out;
+    vertical-align: middle;
+}
+
+.leaderboard-row:hover {
+    background-color: #fae1e1;
 }
 
 .leaderboard-row:nth-child(even) {
@@ -63,8 +93,18 @@
 .user-cell {
     display: flex;
     align-items: center;
+    /* ✅ จัดให้กึ่งกลางแนวตั้ง */
     gap: 10px;
     justify-content: flex-start;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.user-cell span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .avatar-img {
@@ -74,21 +114,9 @@
     object-fit: cover;
     border: 2px solid white;
     box-shadow: 0 0 0 2px #f4c6c6;
-}
-
-.leaderboard-table td:first-child,
-.leaderboard-table th:first-child {
-    text-align: center;
-    vertical-align: middle;
-    width: 15%;
-}
-
-.leaderboard-table th:last-child,
-.leaderboard-table td:last-child {
-    text-align: center;
-    vertical-align: middle;
-    width: 30%;
-    min-width: 140px;
+    flex-shrink: 0;
+    display: block;
+    /* ✅ ป้องกันช่องว่างล่างใน inline img */
 }
 
 .leaderboard-footer-bar {
@@ -102,7 +130,6 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    /* ✅ ให้กลมล่าง */
     border-bottom-left-radius: 12px;
     border-bottom-right-radius: 12px;
 }

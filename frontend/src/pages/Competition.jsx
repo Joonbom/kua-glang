@@ -10,7 +10,7 @@ import MenuBar from "../components/MenuBar/MenuBar";
 import QuestModal from "../components/Competition/QuestModal";
 
 function Competition() {
-  const userId = "user006"; // ✅ เปลี่ยนเป็น userId จริงจากระบบ login
+  const userId = localStorage.getItem("userId"); 
   const maxScore = 100; // ✅ สามารถปรับได้ถ้ามีหลายระดับ
   const [mode, setMode] = useState("trash");
   const [viewScope, setViewScope] = useState("all");

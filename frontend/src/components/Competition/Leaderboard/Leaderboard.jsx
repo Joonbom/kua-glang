@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import "./Leaderboard.css";
+import defaultAvatar from "../../../assets/profilerank.png";
 
 function Leaderboard({ currentMode, viewScope, userId }) {
   const [users, setUsers] = useState([]);
@@ -82,14 +83,16 @@ function Leaderboard({ currentMode, viewScope, userId }) {
             {users.map((user, index) => (
               <tr key={`${user.username}-${index}`} className="leaderboard-row">
                 <td>{user.position}</td>
-                <td className="user-cell">
-                  <img
-                    src={user.profile_img}
-                    alt="avatar"
-                    className="avatar-img"
-                  />
-                  {user.username}
-                </td>
+<td>
+  <div className="user-cell">
+    <img
+      src={user.profile_img || defaultAvatar}
+      alt="avatar"
+      className="avatar-img"
+    />
+    <span>{user.username}</span>
+  </div>
+</td>
                 <td>
                   {user.quantity} {user.unit}
                 </td>
@@ -105,7 +108,11 @@ function Leaderboard({ currentMode, viewScope, userId }) {
             อันดับของคุณ: <strong>{myData.position}</strong>
           </span>
           <div className="user-cell">
-            <img src={myData.profile_img} alt="avatar" className="avatar-img" />
+            <img
+              src={myData.profile_img || defaultAvatar}
+              alt="avatar"
+              className="avatar-img"
+            />
             {myData.username}
           </div>
         </div>
