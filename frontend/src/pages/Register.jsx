@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Mail, Lock, User, Phone, Bookmark, Eye, EyeOff, Camera } from "lucide-react";
-import axios from 'axios'; // เพิ่ม axios สำหรับเรียก API
+import axios from 'axios';
 
-// URL ของ API สำหรับขอ Pre-signed URL (เหมือนกับใน AddFolder)
+// URL ของ API สำหรับขอ Pre-signed URL
 const PRE_SIGNED_URL_ENDPOINT = 'https://8i2v8q86ld.execute-api.us-east-1.amazonaws.com/kua-api/image/upload-url';
 // URL ของ API สำหรับลงทะเบียน
 const SIGN_UP_ENDPOINT = 'https://8i2v8q86ld.execute-api.us-east-1.amazonaws.com/kua-api/auth/sign-up';
@@ -16,13 +16,13 @@ export default function Register() {
     line_id: "",
     password: "",
     confirmPassword: "",
-    profile_url: "", // นี่จะยังใช้สำหรับ preview URL (Blob URL)
+    profile_url: "", // สำหรับ preview URL (Blob URL)
   });
 
-  const [profileImageFile, setProfileImageFile] = useState(null); // State สำหรับเก็บ File object
+  const [profileImageFile, setProfileImageFile] = useState(null); // สำหรับเก็บ File object
   const [showPass, setShowPass] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [isUploading, setIsUploading] = useState(false); // State สำหรับ loading ขณะอัปโหลด
+  const [isUploading, setIsUploading] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
@@ -30,12 +30,12 @@ export default function Register() {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setProfileImageFile(file); // เก็บ File object
+      setProfileImageFile(file);
       const previewUrl = URL.createObjectURL(file);
-      setForm({ ...form, profile_url: previewUrl }); // ตั้งค่า Blob URL สำหรับ preview
+      setForm({ ...form, profile_url: previewUrl });
     } else {
       setProfileImageFile(null);
-      setForm({ ...form, profile_url: "" }); // ถ้าไม่เลือกไฟล์ ก็ล้างค่า
+      setForm({ ...form, profile_url: "" });
     }
   };
 
@@ -46,14 +46,11 @@ export default function Register() {
       return;
     }
 
-    setIsUploading(true); // เริ่มการอัปโหลด/ประมวลผล
+    setIsUploading(true);
+    let finalProfileS3Url = "";
 
-    let finalProfileS3Url = ""; // URL ของรูปภาพบน S3 ที่จะส่งไปบันทึก
-
-    // 1. อัปโหลดรูปภาพ (ถ้ามี)
     if (profileImageFile) {
       try {
-        // 1.1 ขอ Pre-signed URL
         const imgInform = {
           fileName: profileImageFile.name,
           contentType: profileImageFile.type,
@@ -64,36 +61,31 @@ export default function Register() {
           throw new Error("ไม่สามารถรับ Pre-signed URL ได้");
         }
 
-        // 1.2 อัปโหลดไฟล์ไปยัง S3
         await fetch(presignData.uploadUrl, {
           method: 'PUT',
-          headers: {
-            'Content-Type': profileImageFile.type,
-          },
+          headers: { 'Content-Type': profileImageFile.type },
           body: profileImageFile,
         });
 
-        finalProfileS3Url = presignData.fileUrl; // เก็บ URL ของ S3
+        finalProfileS3Url = presignData.fileUrl;
         console.log('อัปโหลดรูปภาพสำเร็จ:', finalProfileS3Url);
 
       } catch (uploadError) {
         console.error('เกิดข้อผิดพลาดในการอัปโหลดรูปภาพ:', uploadError);
         alert('เกิดข้อผิดพลาดในการอัปโหลดรูปภาพโปรไฟล์ กรุณาลองใหม่อีกครั้ง');
         setIsUploading(false);
-        return; // หยุดการทำงานถ้าอัปโหลดรูปไม่สำเร็จ
+        return;
       }
     }
 
-    // 2. เตรียม Payload สำหรับส่งไปลงทะเบียน
-    // เอา confirmPassword และ profile_url (ที่เป็น blob url) ออกจาก form
-    // แล้วใส่ finalProfileS3Url เข้าไปแทน
     const { confirmPassword, profile_url, ...registrationData } = form;
     const payload = {
       ...registrationData,
-      profile_url: finalProfileS3Url, // ใช้ URL จาก S3 หรือ "" ถ้าไม่มีรูป
+      profile_url: finalProfileS3Url,
     };
 
-    // 3. ส่งข้อมูลการลงทะเบียน
+    console.log("Payload to be sent to backend:", payload);
+
     try {
       const res = await fetch(SIGN_UP_ENDPOINT, {
         method: "POST",
@@ -101,7 +93,7 @@ export default function Register() {
         body: JSON.stringify(payload),
       });
 
-      const responseData = await res.json(); // พยายามอ่าน response body
+      const responseData = await res.json();
 
       if (res.ok) {
         alert("ลงทะเบียนสำเร็จ!");
@@ -114,19 +106,22 @@ export default function Register() {
       console.error('เกิดข้อผิดพลาดระหว่างการลงทะเบียน:', regError);
       alert('เกิดข้อผิดพลาดบางอย่างระหว่างการลงทะเบียน');
     } finally {
-      setIsUploading(false); // สิ้นสุดการอัปโหลด/ประมวลผล
+      setIsUploading(false);
     }
   };
 
   return (
     <div className="bg-pink-50 flex items-center justify-center min-h-screen">
-      <div className="w-[440px] max-h-[95vh] overflow-y-auto px-6 py-4 my-4 rounded-lg shadow-lg bg-white"> {/*ปรับปรุง UI เล็กน้อย*/}
-        <button onClick={() => navigate(-1)} className="text-pink-600 mb-2 text-2xl font-bold">
+      <div className="w-[440px] max-h-[95vh] overflow-y-auto px-6 py-4 my-4 rounded-lg shadow-lg bg-white">
+        <button
+          onClick={() => navigate(-1)}
+          // คลาสที่เพิ่ม/ปรับปรุง
+          className="bg-transparent border-none p-0 focus:outline-none text-pink-600 mb-2 text-2xl font-bold hover:text-pink-700"
+        >
           ←
         </button>
         <h1 className="text-3xl font-bold text-pink-600 mb-6 text-center">ลงทะเบียน</h1>
 
-        {/* Profile image uploader */}
         <div className="mx-auto mb-6 flex flex-col items-center">
           <label htmlFor="profileUpload" className="cursor-pointer">
             <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center shadow overflow-hidden">
@@ -148,7 +143,6 @@ export default function Register() {
           {isUploading && <p className="text-pink-500 text-sm mt-2">กำลังอัปโหลดรูปภาพ...</p>}
         </div>
 
-
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input icon={<User />} name="username" placeholder="ชื่อผู้ใช้" value={form.username} onChange={handleChange} disabled={isUploading} />
           <Input icon={<Mail />} name="email" type="email" placeholder="อีเมล" value={form.email} onChange={handleChange} disabled={isUploading} />
@@ -162,7 +156,14 @@ export default function Register() {
             value={form.password}
             onChange={handleChange}
             rightIcon={
-              <button type="button" onClick={() => setShowPass(!showPass)} disabled={isUploading}>{showPass ? <EyeOff /> : <Eye />}</button>
+              <button
+                type="button"
+                onClick={() => setShowPass(!showPass)}
+                disabled={isUploading}
+                className="bg-transparent border-none p-0 focus:outline-none" // <--- แก้ไขตรงนี้
+              >
+                {showPass ? <EyeOff /> : <Eye />}
+              </button>
             }
             disabled={isUploading}
           />
@@ -174,7 +175,14 @@ export default function Register() {
             value={form.confirmPassword}
             onChange={handleChange}
             rightIcon={
-              <button type="button" onClick={() => setShowConfirm(!showConfirm)} disabled={isUploading}>{showConfirm ? <EyeOff /> : <Eye />}</button>
+              <button
+                type="button"
+                onClick={() => setShowConfirm(!showConfirm)}
+                disabled={isUploading}
+                className="bg-transparent border-none p-0 focus:outline-none" // <--- แก้ไขตรงนี้
+              >
+                {showConfirm ? <EyeOff /> : <Eye />}
+              </button>
             }
             disabled={isUploading}
           />
