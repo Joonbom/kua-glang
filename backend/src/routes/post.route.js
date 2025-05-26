@@ -17,7 +17,7 @@ const followUser = require("../controllers/post/followUser.controller");
 
 router.get('/', getAllPosts);
 router.post('/like/:userId/:postId', likePost);
-router.post('/:postId/comment/:userId', commentPost);
+router.post('/post/:postId/comment/:userId', commentPost);
 router.post('/post/:cid/comment/:userId', likeComment);
 router.delete("/:postId/comment/:cId", deleteComment);
 router.put("/:postId/comment/:cId", updateComment);

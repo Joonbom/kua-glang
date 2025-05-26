@@ -11,6 +11,8 @@ import './CommunityPage.css';
 import { useAuth } from '../../contexts/AuthContext';
 import {
   fetchAllPosts,
+  fetchFriends,       // ✅ เพิ่ม
+  followUser,         // ✅ เพิ่ม
   deletePost,
   likePost,
   likeComment,
@@ -23,6 +25,7 @@ export default function CommunityPage() {
   const navigate = useNavigate();
   const { userId } = useAuth();
   const [posts, setPosts] = useState([]);
+  const [friends, setFriends] = useState([]); // ✅ เพิ่ม
   const [showCommentsForPostId, setShowCommentsForPostId] = useState(null);
   const [commentInput, setCommentInput] = useState({});
   const [replyingToComment, setReplyingToComment] = useState(null);
@@ -30,6 +33,20 @@ export default function CommunityPage() {
   const headerRef = useRef(null);
   const [headerHeight, setHeaderHeight] = useState(0);
   const [fabRight, setFabRight] = useState('1rem');
+
+  // ✅ โหลดเพื่อนของ user
+  useEffect(() => {
+    const loadFriends = async () => {
+      try {
+        const data = await fetchFriends(userId);
+        const ids = Array.isArray(data.myfriend) ? data.myfriend.map(f => f.userId) : [];
+        setFriends(ids);
+      } catch (err) {
+        console.error("โหลดเพื่อนล้มเหลว:", err);
+      }
+    };
+    if (userId) loadFriends();
+  }, [userId]);
 
   useEffect(() => {
     const loadPosts = async () => {
@@ -63,6 +80,18 @@ export default function CommunityPage() {
     window.addEventListener('resize', calcFab);
     return () => window.removeEventListener('resize', calcFab);
   }, []);
+
+  const handleAddFriend = async (targetUser) => {
+    try {
+      await followUser(userId, targetUser.id);
+      alert(`ติดตาม ${targetUser.name} แล้ว`);
+      navigate('/community/following', { state: { refreshFriends: true } }); // ✅ เพิ่มบรรทัดนี้
+
+    } catch (err) {
+      console.error("เพิ่มเพื่อนล้มเหลว:", err);
+      alert("ไม่สามารถเพิ่มเพื่อนได้");
+    }
+  };
 
   const handleDeletePost = async (postId, authorId) => {
     if (authorId !== userId) return alert('ไม่มีสิทธิ์ลบโพสต์นี้');
@@ -178,11 +207,15 @@ export default function CommunityPage() {
     }
   };
 
-  const filtered = posts.filter(p =>
-    !searchTerm ||
-    p.caption?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.commentsArray?.some(c => c.text?.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  const filteredPosts = posts.filter(p => {
+    const keyword = searchTerm.toLowerCase();
+    return (
+      !searchTerm ||
+      p.caption?.toLowerCase().includes(keyword) ||
+      p.name?.toLowerCase().includes(keyword) ||
+      p.commentsArray?.some(c => c.text?.toLowerCase().includes(keyword))
+    );
+  });
 
   return (
     <div className="community-page-wrapper">
@@ -206,11 +239,13 @@ export default function CommunityPage() {
           </div>
 
           <div className="posts-list-section">
-            {filtered.map(post => (
+            {filteredPosts.map(post => (
               <React.Fragment key={post.postId}>
                 <PostCard
                   post={post}
                   currentUserId={userId}
+                  isFriend={friends.includes(post.userId)} // ✅ ส่ง isFriend
+                  onAddFriend={handleAddFriend}            // ✅ ส่งฟังก์ชันเพิ่มเพื่อน
                   onToggleLike={() => handleLikePost(post.postId)}
                   onToggleShowComments={() => handleToggleShowComments(post.postId)}
                   onNavigateToEdit={() => navigate(`/community/edit/${post.postId}`)}

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom'; // 🆕 เพิ่ม useLocation
 import { Search } from 'lucide-react';
 import { IoClose } from 'react-icons/io5';
 
@@ -27,6 +27,7 @@ import { sanitizePost } from '../../utils/sanitize';
 export default function FollowingPage() {
   const navigate = useNavigate();
   const { userId } = useAuth();
+  const location = useLocation(); // 🆕 เพิ่ม useLocation เพื่อตรวจ state
 
   const [tab, setTab] = useState('โพสต์ของเพื่อน');
   const [posts, setPosts] = useState([]);
@@ -95,15 +96,78 @@ export default function FollowingPage() {
     if (userId) load();
   }, [userId]);
 
+  // useEffect(() => {
+  //   // 🆕 รีโหลดเพื่อนถ้า location.state.refreshFriends ถูกส่งมาจากหน้าอื่น
+  //   if (location.state?.refreshFriends) {
+  //     (async () => {
+  //       try {
+  //         const friendsListRaw = await fetchFriends(userId);
+  //         const friendsList = Array.isArray(friendsListRaw.myfriend)
+  //           ? friendsListRaw.myfriend.map(f => f.userId)
+  //           : [];
+  //         setFriends(friendsList);
+  //       } catch (e) {
+  //         console.error('โหลดเพื่อนล้มเหลวหลัง refresh:', e);
+  //       }
+  //     })();
+  //   }
+  // }, [location.state, userId]);
+
+  useEffect(() => {
+    if (location.state?.refreshFriends) {
+      (async () => {
+        try {
+          const [all, friendsListRaw] = await Promise.all([
+            fetchAllPosts(),
+            fetchFriends(userId)
+          ]);
+
+          const friendsList = Array.isArray(friendsListRaw.myfriend)
+            ? friendsListRaw.myfriend.map(f => f.userId)
+            : [];
+
+          setFriends(friendsList);
+
+          const visible = all
+            .filter(p => p.userId === userId || friendsList.includes(p.userId))
+            .map(p => sanitizePost(p));
+
+          setPosts(visible);
+        } catch (e) {
+          console.error('โหลดโพสต์หรือเพื่อนล้มเหลวหลัง refresh:', e);
+        }
+      })();
+    }
+  }, [location.state, userId]);
+
+
   const toggleFriend = async (targetId) => {
     try {
       if (friends.includes(targetId)) {
         await unfollowUser(userId, targetId);
-        setFriends(prev => prev.filter(f => f !== targetId));
       } else {
         await followUser(userId, targetId);
-        setFriends(prev => [...prev, targetId]);
       }
+
+      // 🎯 โหลดใหม่หลังเปลี่ยนสถานะ
+      const [all, newFriendsListRaw] = await Promise.all([
+        fetchAllPosts(),
+        fetchFriends(userId)
+      ]);
+
+      const newFriendsList = Array.isArray(newFriendsListRaw.myfriend)
+        ? newFriendsListRaw.myfriend.map(f => f.userId)
+        : [];
+
+      setFriends(newFriendsList);
+
+      // 🎯 รีเฟรชโพสต์ใหม่หลังเพิ่มเพื่อน
+      const visible = all
+        .filter(p => p.userId === userId || newFriendsList.includes(p.userId))
+        .map(p => sanitizePost(p));
+
+      setPosts(visible);
+
     } catch (e) {
       console.error('เปลี่ยนสถานะเพื่อนไม่ได้:', e);
       alert('ไม่สามารถเปลี่ยนสถานะเพื่อนได้');
@@ -228,9 +292,16 @@ export default function FollowingPage() {
     }
   };
 
-  const filteredPosts = posts.filter(p =>
-    !search || p.caption?.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredPosts = posts.filter(p => {
+    const keyword = search.toLowerCase();
+    return (
+      !search ||
+      p.caption?.toLowerCase().includes(keyword) ||
+      p.name?.toLowerCase().includes(keyword) ||
+      p.commentsArray?.some(c => c.text?.toLowerCase().includes(keyword))
+    );
+  });
+
 
   return (
     <div className="following-page-wrapper">
@@ -279,6 +350,7 @@ export default function FollowingPage() {
                     onToggleLike={() => handleLike(post.postId)}
                     onToggleShowComments={() => toggleComment(post.postId)}
                     onNavigateToEdit={(postId) => navigate(`/community/edit/${postId}`)}
+                    onAddFriend={toggleFriend} // 🎯 ส่ง toggleFriend มาจาก props หรือ Context
                     onDeletePost={(postId, authorId) => {
                       if (userId !== authorId) return alert('ไม่มีสิทธิ์ลบโพสต์นี้');
                       if (!window.confirm('ยืนยันการลบโพสต์นี้?')) return;
