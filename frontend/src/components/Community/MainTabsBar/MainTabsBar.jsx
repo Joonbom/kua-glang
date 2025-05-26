@@ -1,5 +1,4 @@
 // src/components/Community/MainTabsBar/MainTabsBar.jsx
-import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Bell } from 'lucide-react';
 import './MainTabsBar.css'; // <--- Import ไฟล์ CSS ที่สร้างขึ้น
