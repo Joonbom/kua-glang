@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import PostCard from "../Community/PostCard"; // ✅ ปรับ path ตามจริง
 
 export default function MyPostSection() {
-  const userId = localStorage.getItem("userId") || "user003";
+  const userId = localStorage.getItem("userId") || "RPZ3";
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
 

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import EditProfileSection from '../../components/EditProfile/EditProfileSection.jsx';
+import EditProfileImage from '../../components/EditProfile/EditProfileImage.jsx';
 import './EditProfilePage.css'; // ใช้สี #D34670 เป็นธีมหลัก
 
 export default function EditProfilePage() {
@@ -50,6 +51,9 @@ return (
         <div className="edit-profile-displayname">{userData.username}</div>
       </div>
       <EditProfileSection onSelect={handleSelect} />
+      <EditProfileImage userId={userId} currentUrl={userData.profile_url} onUploaded={(newUrl) => {
+        setUserData((prev) => ({ ...prev, profile_url: newUrl }));
+      }} />
     </div>
   );
 }
