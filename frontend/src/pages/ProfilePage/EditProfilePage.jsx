@@ -4,7 +4,7 @@ import './EditProfilePage.css'; // ใช้สี #D34670 เป็นธีม
 
 export default function EditProfilePage() {
   const [userData, setUserData] = useState(null);
-  const userId = localStorage.getItem('userId') || 'user003'; // หรือจาก context
+  const userId = localStorage.getItem('userId') || 'RPZ3'; // หรือจาก context
   //const mockData = {
   //username: 'mock_user',
   //profile_url: '../../assets/ProfilePage/demoprofile.jpg',
@@ -21,7 +21,7 @@ useEffect(() => {
   //  return;
   //}
 
-  fetch(`http://localhost:3000/profile/${userId}`)
+  fetch(`https://8i2v8q86ld.execute-api.us-east-1.amazonaws.com/kua-api/profile/${userId}`)
     .then(res => res.json())
     .then(data => setUserData(data))
     .catch(err => {

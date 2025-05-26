@@ -5,7 +5,6 @@ import { FaSignOutAlt, FaSearch, FaTimes } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import '@fontsource/bai-jamjuree';
 import MenuBar from '../MenuBar/MenuBar.jsx';
-import axios from 'axios';
 
 const URL = "http://localhost:3000";
 
