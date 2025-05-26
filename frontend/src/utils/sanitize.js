@@ -19,34 +19,69 @@ export const sanitizeComment = (c) => {
 };
 
 export const sanitizePost = (p) => {
-    if (!p || typeof p.id === 'undefined') {
-        console.warn('[SanitizeUtil] Sanitizing invalid post object:', p);
-        return null;
+  if (!p || (typeof p.id === 'undefined' && typeof p.postId === 'undefined')) {
+    console.warn('[SanitizeUtil] Sanitizing invalid post object:', p);
+    return null;
+  }
+
+  const commentsArray = Array.isArray(p.commentsArray)
+    ? p.commentsArray.map(sanitizeComment).filter(c => c !== null)
+    : [];
+
+  const totalComments = commentsArray.reduce((sum, cItem) => {
+    let count = 1;
+    if (cItem.replies && Array.isArray(cItem.replies)) {
+      count += cItem.replies.length;
     }
-    const commentsArray = Array.isArray(p.commentsArray)
-        ? p.commentsArray.map(sanitizeComment).filter(c => c !== null)
-        : [];
+    return sum + count;
+  }, 0);
 
-    const totalComments = commentsArray.reduce((sum, cItem) => {
-        let count = 1;
-        if (cItem.replies && Array.isArray(cItem.replies)) {
-            count += cItem.replies.length;
-        }
-        return sum + count;
-    }, 0);
-
-    return {
-        id: Number(p.id),
-        authorId: String(p.authorId || MOCK_CURRENT_USER_ID),
-        name: p.name || 'Anonymous',
-        avatar: p.avatar || MOCK_CURRENT_USER_AVATAR,
-        location: p.location || '',
-        content: p.content || '',
-        image: p.image || null,
-        time: p.time || 'Sometime ago',
-        likes: Number(p.likes) || 0,
-        isLiked: !!p.isLiked,
-        commentsArray: commentsArray,
-        comments: totalComments,
-    };
+  return {
+    id: Number(p.id || 0), // fallback to 0 if not present
+    postId: p.postId || null, // keep backend ID
+    authorId: String(p.userId || p.authorId || MOCK_CURRENT_USER_ID),
+    name: p.username || p.name || 'Anonymous',
+    avatar: p.avatar || MOCK_CURRENT_USER_AVATAR,
+    location: p.location || '',
+    content: p.caption || p.content || '',
+    image: p.img_url || p.image || null,
+    time: p.created_at || p.time || 'เมื่อสักครู่',
+    likes: Number(p.likes) || 0,
+    isLiked: !!p.isLiked,
+    commentsArray,
+    comments: totalComments,
+  };
 };
+
+// export const sanitizePost = (p) => {
+//     if (!p || typeof p.id === 'undefined') {
+//         console.warn('[SanitizeUtil] Sanitizing invalid post object:', p);
+//         return null;
+//     }
+//     const commentsArray = Array.isArray(p.commentsArray)
+//         ? p.commentsArray.map(sanitizeComment).filter(c => c !== null)
+//         : [];
+
+//     const totalComments = commentsArray.reduce((sum, cItem) => {
+//         let count = 1;
+//         if (cItem.replies && Array.isArray(cItem.replies)) {
+//             count += cItem.replies.length;
+//         }
+//         return sum + count;
+//     }, 0);
+
+//     return {
+//         id: Number(p.id),
+//         authorId: String(p.authorId || MOCK_CURRENT_USER_ID),
+//         name: p.name || 'Anonymous',
+//         avatar: p.avatar || MOCK_CURRENT_USER_AVATAR,
+//         location: p.location || '',
+//         content: p.content || '',
+//         image: p.image || null,
+//         time: p.time || 'Sometime ago',
+//         likes: Number(p.likes) || 0,
+//         isLiked: !!p.isLiked,
+//         commentsArray: commentsArray,
+//         comments: totalComments,
+//     };
+// };

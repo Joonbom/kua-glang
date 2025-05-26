@@ -1,20 +1,19 @@
-// src/pages/CreatePostPage/CreatePostPage.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { X, Image as ImageIcon, BarChart2, MapPin, Globe, List } from 'lucide-react';
 
-import { getPostsFromStorage, savePostsToStorage } from '../../utils/storage';
-import { MOCK_CURRENT_USER_ID, MOCK_CURRENT_USER_NAME, MOCK_CURRENT_USER_AVATAR } from '../../data/mockData';
+import { createPost } from '../../services/postService';
+import { useAuth } from '../../contexts/AuthContext';
 
-import './CreatePostPage.css'; // Ensure you have this CSS file
+import './CreatePostPage.css';
 
 export default function CreatePostPage() {
     const navigate = useNavigate();
+    const { userId, username } = useAuth();
 
     const [content, setContent] = useState('');
     const [imagePreview, setImagePreview] = useState(null);
     const [imageFile, setImageFile] = useState(null);
-    const [name] = useState(MOCK_CURRENT_USER_NAME); // Name is from MOCK for new posts
     const [location, setLocation] = useState('');
 
     const MAX_CHARS = 280;
@@ -42,41 +41,33 @@ export default function CreatePostPage() {
         if (fileInput) fileInput.value = "";
     };
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        // Enable submit if there is content OR an image file selected
-        if (!content.trim() && !imageFile) {
-            alert('กรุณาใส่ข้อความหรือเลือกรูปภาพ');
-            return;
-        }
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-        const postsFromStorage = getPostsFromStorage();
-        // For localStorage, we save the imagePreview (base64 data URL if an image was selected).
-        // imageFile is used to check if a file was selected, imagePreview holds the data to save.
-        const imageToSave = imagePreview;
+  if (!content.trim() && !imagePreview) {
+    alert('กรุณาใส่ข้อความหรือเลือกรูปภาพ');
+    return;
+  }
 
-        const newPost = {
-            id: Date.now(),
-            authorId: MOCK_CURRENT_USER_ID,
-            name: name,
-            avatar: MOCK_CURRENT_USER_AVATAR,
-            location: location.trim(),
-            content: content.trim(),
-            image: imageToSave, // This will be the base64 data from imagePreview
-            time: 'เมื่อสักครู่',
-            likes: 0,
-            comments: 0,
-            isLiked: false,
-            commentsArray: [],
-        };
-
-        const updatedPosts = [newPost, ...postsFromStorage];
-        savePostsToStorage(updatedPosts);
-        console.log('[CreatePostPage] Navigating to /community with state refresh.');
-        navigate('/community', { state: { refresh: true, timestamp: Date.now(), from: 'create' } });
+  try {
+    const postData = {
+      caption: content.trim(),
+      img_url: imagePreview || "", // ต้องไม่เป็น undefined
     };
 
-    // Submit button is disabled if there's no text content AND no image file selected.
+    console.log('>> ส่ง postData:', postData); // ✅ ลอง log ตรวจดู
+    const response = await createPost(userId, postData);
+    console.log('[CreatePostPage] โพสต์สำเร็จ:', response);
+
+    navigate('/community', {
+      state: { refresh: true, timestamp: Date.now(), from: 'create' },
+    });
+  } catch (error) {
+    console.error('เกิดข้อผิดพลาดในการโพสต์:', error);
+    alert('ไม่สามารถโพสต์ได้ กรุณาลองใหม่');
+  }
+};
+
     const isSubmitDisabled = !content.trim() && !imageFile;
 
     return (
@@ -88,9 +79,9 @@ export default function CreatePostPage() {
                     <button onClick={handleSubmit} disabled={isSubmitDisabled} className="header-submit-button">โพสต์</button>
                 </div>
                 <div className="create-post-content-area">
-                    <img src={MOCK_CURRENT_USER_AVATAR} alt="รูปโปรไฟล์" className="user-avatar-post-create" />
+                    <div className="user-avatar-post-create" />
                     <div className="post-form-fields">
-                        <p className="post-user-name">{name}</p>
+                        <p className="post-user-name">{username}</p>
                         <input type="text" placeholder="เพิ่มสถานที่ (ถ้ามี)" value={location} onChange={handleLocationChange} className="location-input" />
                         <textarea value={content} onChange={handleContentChange} placeholder="มีอะไรเกิดขึ้นบ้าง?" className="content-textarea" rows="5" />
                         {imagePreview && (
@@ -107,7 +98,8 @@ export default function CreatePostPage() {
                 </div>
                 <div className="actions-toolbar">
                     <label htmlFor="imageFileCreatePageInput" className="toolbar-label-button" title="เพิ่มรูปภาพ">
-                        <ImageIcon /><input type="file" id="imageFileCreatePageInput" accept="image/*" onChange={handleImageFileChange} className="hidden-file-input" />
+                        <ImageIcon />
+                        <input type="file" id="imageFileCreatePageInput" accept="image/*" onChange={handleImageFileChange} className="hidden-file-input" />
                     </label>
                     <button className="toolbar-button" title="GIF" disabled><span className="gif-text">GIF</span></button>
                     <button className="toolbar-button" title="โพล" disabled><BarChart2 /></button>

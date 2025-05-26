@@ -37,7 +37,7 @@ export default function Register() {
 
     const { confirmPassword, ...payload } = form;
 
-    const res = await fetch("http://localhost:3000/register", {
+    const res = await fetch("https://8i2v8q86ld.execute-api.us-east-1.amazonaws.com/kua-api/auth/sign-up", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
