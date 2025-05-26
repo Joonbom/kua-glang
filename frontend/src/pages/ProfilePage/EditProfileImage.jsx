@@ -1,87 +1,164 @@
-// src/pages/EditProfileImagePage.jsx
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import './EditProfileImagePage.css'
+import React, { useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-export default function EditProfileImagePage() {
-  const userId = localStorage.getItem('userId') || 'RPZ3';
+export default function EditProfileImage() {
+  const [previewUrl, setPreviewUrl] = useState('');
+  const [fileInfo, setFileInfo] = useState(null);
+  const [message, setMessage] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef(null);
   const navigate = useNavigate();
-  const [preview, setPreview] = useState(null);
-  const [error, setError] = useState(null);
-  const [uploading, setUploading] = useState(false);
+  const userId = localStorage.getItem('userId') || 'RPZ3';
 
-  const handleChange = async (e) => {
+  const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    const fileName = `${userId}-${Date.now()}-${file.name}`;
-    const contentType = file.type;
+    setPreviewUrl(URL.createObjectURL(file));
+    setFileInfo({
+      fileName: file.name,
+      contentType: file.type,
+      Blob: file,
+    });
+    setMessage('');
+  };
 
-    setPreview(URL.createObjectURL(file));
-    setUploading(true);
-    setError(null);
+  const handleUpload = async () => {
+    if (!fileInfo) return;
+    setIsUploading(true);
+    setMessage('');
 
     try {
-      // ขอ uploadUrl จาก backend
-      const res = await fetch("https://8i2v8q86ld.execute-api.us-east-1.amazonaws.com/kua-api/image/upload-url", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fileName, contentType }),
-      });
+      // 1️⃣ ขอ upload URL จาก backend
+      const res = await fetch(
+        'https://8i2v8q86ld.execute-api.us-east-1.amazonaws.com/kua-api/image/upload-url',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fileName: fileInfo.fileName,
+            contentType: fileInfo.contentType,
+          }),
+        }
+      );
+
       const { uploadUrl, fileUrl } = await res.json();
 
-      // อัพโหลดรูปขึ้น S3
+      // 2️⃣ PUT รูปไป S3
       await fetch(uploadUrl, {
-        method: "PUT",
-        headers: { "Content-Type": contentType },
-        body: file,
+        method: 'PUT',
+        headers: { 'Content-Type': fileInfo.contentType },
+        body: fileInfo.Blob,
       });
 
-      // อัพเดท profile_url ไปที่ DynamoDB
-      await fetch(`https://8i2v8q86ld.execute-api.us-east-1.amazonaws.com/kua-api/stat/${userId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ profile_url: fileUrl }),
-      });
+      // 3️⃣ อัปเดต profile_url ไปยัง DynamoDB
+      await fetch(
+        `https://8i2v8q86ld.execute-api.us-east-1.amazonaws.com/kua-api/profile/stat/${userId}`,
+        {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ profile_url: fileUrl }),
+        }
+      );
 
-      alert("✅ อัพโหลดและอัพเดทโปรไฟล์สำเร็จ");
-      navigate("/edit-profile");
+      setMessage('✅ อัปโหลดและอัปเดตสำเร็จ!');
     } catch (err) {
       console.error(err);
-      setError("❌ เกิดข้อผิดพลาดในการอัพโหลด");
+      setMessage('❌ อัปโหลดไม่สำเร็จ');
     } finally {
-      setUploading(false);
+      setIsUploading(false);
     }
   };
 
   return (
-    <div style={{ padding: 24 }}>
-      <h2 style={{ color: "#D34670" }}>แก้ไขรูปโปรไฟล์</h2>
-      {preview && (
-        <img
-          src={preview}
-          alt="preview"
-          style={{ width: 120, height: 120, borderRadius: "50%", marginBottom: 16 }}
-        />
-      )}
-          <label htmlFor="file-upload" className="upload-box">
-      {preview ? (
-        <img src={preview} alt="preview" className="preview-image" />
-      ) : (
-        <span className="upload-text">คลิกที่นี่เพื่ออัปโหลดรูปโปรไฟล์</span>
-      )}
-        </label>
-        <input
-          id="file-upload"
-          type="file"
-          accept="image/*"
-          onChange={handleChange}
-          style={{ display: 'none' }}
-        />
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      <button onClick={() => navigate("/edit-profile")} style={{ marginTop: 16, background: "#D34670", color: "white", padding: 8, borderRadius: 8 }}>
-        ⬅️ กลับ
+    <div style={{
+      backgroundColor: '#D34670',
+      minHeight: '100vh',
+      padding: '40px',
+      color: 'white',
+      textAlign: 'center'
+    }}>
+      <button
+        onClick={() => navigate('/edit-profile')}
+        style={{
+          background: 'none',
+          border: 'none',
+          color: 'white',
+          fontSize: '1rem',
+          cursor: 'pointer',
+          marginBottom: '20px'
+        }}
+      >
+        ⬅ กลับ
       </button>
+
+      <h2>แก้ไขรูปโปรไฟล์</h2>
+
+      {/* กล่องอัปโหลด */}
+      <div
+        onClick={() => fileInputRef.current.click()}
+        style={{
+          width: '280px',
+          height: '180px',
+          margin: '0 auto',
+          backgroundColor: '#F7EBEB',
+          border: '2px dashed white',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          borderRadius: '12px',
+          color: '#D34670',
+          fontWeight: 'bold',
+          fontSize: '16px',
+        }}
+      >
+        คลิกเพื่อเลือกไฟล์รูปภาพ
+      </div>
+
+      {/* ซ่อน input จริง */}
+      <input
+        type="file"
+        accept="image/*"
+        onChange={handleImageChange}
+        ref={fileInputRef}
+        style={{ display: 'none' }}
+      />
+
+      {/* แสดงรูป preview */}
+      {previewUrl && (
+        <div style={{ marginTop: '20px' }}>
+          <img
+            src={previewUrl}
+            alt="preview"
+            style={{
+              width: '200px',
+              borderRadius: '10px',
+              border: '2px solid white',
+              marginBottom: '12px'
+            }}
+          />
+          <br />
+          <button
+            onClick={handleUpload}
+            disabled={isUploading}
+            style={{
+              background: 'white',
+              color: '#D34670',
+              border: 'none',
+              borderRadius: '20px',
+              padding: '10px 20px',
+              fontWeight: 'bold',
+              cursor: 'pointer'
+            }}
+          >
+            📤 อัปโหลด
+          </button>
+        </div>
+      )}
+
+      {isUploading && <p style={{ marginTop: '20px' }}>⏳ กำลังอัปโหลด...</p>}
+      {message && <p style={{ marginTop: '20px' }}>{message}</p>}
     </div>
   );
 }
