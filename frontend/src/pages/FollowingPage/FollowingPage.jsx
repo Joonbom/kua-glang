@@ -22,6 +22,7 @@ import {
   deleteComment,
   editComment
 } from '../../services/postService';
+import { sanitizePost } from '../../utils/sanitize';
 
 export default function FollowingPage() {
   const navigate = useNavigate();
@@ -48,25 +49,50 @@ export default function FollowingPage() {
   useEffect(() => {
     const load = async () => {
       try {
-        const [all, friendsList] = await Promise.all([
+        const [all, friendsListRaw] = await Promise.all([
           fetchAllPosts(),
           fetchFriends(userId)
         ]);
 
+        const friendsList = Array.isArray(friendsListRaw.myfriend)
+          ? friendsListRaw.myfriend.map(f => f.userId)
+          : [];
+
         setFriends(friendsList);
 
-        const visible = all.filter(p => p.userId === userId || friendsList.includes(p.userId));
-        setPosts(visible.map(p => ({
-          ...p,
-          isLiked: p.like?.includes(userId),
-          commentsArray: p.comment || [],
-          comments: (p.comment || []).length
-        })));
+        const visible = all
+          .filter(p => p.userId === userId || friendsList.includes(p.userId))
+          .map(p => {
+            const sanitized = sanitizePost(p);
+            return {
+              ...sanitized,
+              isLiked: Array.isArray(p.like)
+                ? p.like.some(l => l.username === userId)
+                : sanitized.isLiked,
+              commentsArray: Array.isArray(p.comment)
+                ? p.comment.map((c, i) => ({
+                  id: c.cid || i,
+                  text: c.caption || '',
+                  authorId: c.userId || '',
+                  user: c.username || 'Unknown',
+                  likes: c.like_count || 0,
+                  isLikedByCurrentUser: false,
+                  replies: []
+                }))
+                : sanitized.commentsArray,
+              comments: Array.isArray(p.comment)
+                ? p.comment.length
+                : sanitized.comments
+            };
+          });
+
+        setPosts(visible);
       } catch (e) {
-        console.error('โหลดโพสต์/เพื่อนล้มเหลว', e);
+        console.error('โหลดโพสต์หรือเพื่อนล้มเหลว:', e);
+        alert('ไม่สามารถโหลดข้อมูลได้');
       }
     };
-    load();
+    if (userId) load();
   }, [userId]);
 
   const toggleFriend = async (targetId) => {
@@ -79,17 +105,24 @@ export default function FollowingPage() {
         setFriends(prev => [...prev, targetId]);
       }
     } catch (e) {
-      console.error('เปลี่ยนสถานะเพื่อนไม่ได้', e);
+      console.error('เปลี่ยนสถานะเพื่อนไม่ได้:', e);
+      alert('ไม่สามารถเปลี่ยนสถานะเพื่อนได้');
     }
   };
 
   const handleLike = async (postId) => {
-    await likePost(userId, postId);
-    setPosts(prev => prev.map(p => p.postId === postId ? {
-      ...p,
-      isLiked: !p.isLiked,
-      likes: p.isLiked ? p.likes - 1 : p.likes + 1
-    } : p));
+    try {
+      await likePost(postId, userId);          // ✅ ถูกต้องตาม API path
+      setPosts(prev => prev.map(p =>
+        p.postId === postId ? {
+          ...p,
+          isLiked: !p.isLiked,
+          likes: p.isLiked ? p.likes - 1 : p.likes + 1
+        } : p
+      ));
+    } catch (e) {
+      console.error('ไลก์โพสต์ล้มเหลว:', e);
+    }
   };
 
   const toggleComment = (postId) => {
@@ -102,62 +135,102 @@ export default function FollowingPage() {
   };
 
   const submitComment = async (postId, parentId = null) => {
+    if (!userId) {
+      alert("กรุณาเข้าสู่ระบบก่อนแสดงความคิดเห็น");
+      return;
+    }
+
     const text = commentInput[postId]?.trim();
     if (!text) return;
+
     try {
-      const newComment = await addComment(userId, postId, text, parentId);
+      const newComment = await addComment(postId, userId, text);  // ✅ ถูกต้องตาม postService.js
       setPosts(prev => prev.map(p => {
         if (p.postId !== postId) return p;
-        const add = (arr) => arr.map(c => c.id === parentId
-          ? { ...c, replies: [...c.replies, newComment] }
-          : { ...c, replies: add(c.replies || []) });
-        const comments = parentId ? add(p.commentsArray) : [...p.commentsArray, newComment];
-        return { ...p, commentsArray: comments, comments: comments.length };
+
+        const addReply = (arr) => arr.map(c =>
+          c.id === parentId
+            ? { ...c, replies: [...(c.replies || []), newComment] }
+            : { ...c, replies: addReply(c.replies || []) }
+        );
+
+        const updatedComments = parentId
+          ? addReply(p.commentsArray)
+          : [...(p.commentsArray || []), newComment];
+
+        return {
+          ...p,
+          commentsArray: updatedComments,
+          comments: updatedComments.length
+        };
       }));
       setCommentInput(prev => ({ ...prev, [postId]: '' }));
       setReplyingTo(null);
     } catch (e) {
-      console.error('เพิ่มคอมเมนต์ล้มเหลว', e);
+      console.error('เพิ่มคอมเมนต์ล้มเหลว:', e);
     }
   };
 
   const handleDeleteComment = async (postId, commentId, authorId) => {
     if (authorId !== userId) return alert('ไม่สามารถลบความคิดเห็นนี้');
     if (!window.confirm('ลบความคิดเห็นนี้ใช่หรือไม่?')) return;
-    await deleteComment(commentId, postId);
-    setPosts(prev => prev.map(p => {
-      if (p.postId !== postId) return p;
-      const filter = (arr) => arr.filter(c => c.id !== commentId).map(c => ({ ...c, replies: filter(c.replies || []) }));
-      const updated = filter(p.commentsArray);
-      return { ...p, commentsArray: updated, comments: updated.length };
-    }));
+    try {
+      await deleteComment(commentId, postId);
+      const remove = (arr) =>
+        arr.filter(c => c.id !== commentId)
+          .map(c => ({ ...c, replies: remove(c.replies || []) }));
+
+      setPosts(prev => prev.map(p => {
+        if (p.postId !== postId) return p;
+        const updated = remove(p.commentsArray);
+        return { ...p, commentsArray: updated, comments: updated.length };
+      }));
+    } catch (e) {
+      console.error('ลบคอมเมนต์ล้มเหลว:', e);
+    }
   };
 
   const handleEditComment = async (postId, comment) => {
     const newText = prompt('แก้ไขคอมเมนต์:', comment.text);
     if (!newText || newText === comment.text) return;
-    await editComment(comment.id, postId, newText);
-    setPosts(prev => prev.map(p => {
-      if (p.postId !== postId) return p;
-      const edit = (arr) => arr.map(c => c.id === comment.id
-        ? { ...c, text: newText }
-        : { ...c, replies: edit(c.replies || []) });
-      return { ...p, commentsArray: edit(p.commentsArray) };
-    }));
+    try {
+      await editComment(comment.id, postId, newText);
+      const edit = (arr) => arr.map(c =>
+        c.id === comment.id
+          ? { ...c, text: newText }
+          : { ...c, replies: edit(c.replies || []) }
+      );
+      setPosts(prev => prev.map(p =>
+        p.postId === postId ? { ...p, commentsArray: edit(p.commentsArray) } : p
+      ));
+    } catch (e) {
+      console.error('แก้ไขคอมเมนต์ล้มเหลว:', e);
+    }
   };
 
   const handleLikeComment = async (postId, commentId) => {
-    await likeComment(userId, commentId);
-    setPosts(prev => prev.map(p => {
-      if (p.postId !== postId) return p;
-      const toggle = (arr) => arr.map(c => c.id === commentId
-        ? { ...c, isLikedByCurrentUser: !c.isLikedByCurrentUser, likes: c.isLikedByCurrentUser ? c.likes - 1 : c.likes + 1 }
-        : { ...c, replies: toggle(c.replies || []) });
-      return { ...p, commentsArray: toggle(p.commentsArray) };
-    }));
+    try {
+      await likeComment(userId, commentId);
+      const toggle = (arr) => arr.map(c =>
+        c.id === commentId
+          ? {
+            ...c,
+            isLikedByCurrentUser: !c.isLikedByCurrentUser,
+            likes: c.isLikedByCurrentUser ? c.likes - 1 : c.likes + 1
+          }
+          : { ...c, replies: toggle(c.replies || []) }
+      );
+      setPosts(prev => prev.map(p =>
+        p.postId === postId ? { ...p, commentsArray: toggle(p.commentsArray) } : p
+      ));
+    } catch (e) {
+      console.error('ไลก์คอมเมนต์ล้มเหลว:', e);
+    }
   };
 
-  const filteredPosts = posts.filter(p => !search || p.caption?.toLowerCase().includes(search.toLowerCase()));
+  const filteredPosts = posts.filter(p =>
+    !search || p.caption?.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
     <div className="following-page-wrapper">
@@ -166,7 +239,13 @@ export default function FollowingPage() {
           <MainTabsBar />
           <div className="following-inner-tabs-container">
             {['โพสต์ของเพื่อน', 'เพื่อนของคุณ'].map(t => (
-              <button key={t} className={`following-inner-tab-button ${tab === t ? 'active' : 'inactive'}`} onClick={() => setTab(t)}>{t}</button>
+              <button
+                key={t}
+                className={`following-inner-tab-button ${tab === t ? 'active' : 'inactive'}`}
+                onClick={() => setTab(t)}
+              >
+                {t}
+              </button>
             ))}
           </div>
         </div>
@@ -175,8 +254,17 @@ export default function FollowingPage() {
           <div className="search-bar-section">
             <div className="search-input-wrapper">
               <span className="search-icon-prefix"><Search /></span>
-              <input className="search-input-field" value={search} onChange={e => setSearch(e.target.value)} placeholder="ค้นหา..." />
-              {search && <button className="clear-search-button" onClick={() => setSearch('')}><IoClose /></button>}
+              <input
+                className="search-input-field"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="ค้นหา..."
+              />
+              {search && (
+                <button className="clear-search-button" onClick={() => setSearch('')}>
+                  <IoClose />
+                </button>
+              )}
             </div>
           </div>
 
@@ -190,6 +278,18 @@ export default function FollowingPage() {
                     isFriend={friends.includes(post.userId)}
                     onToggleLike={() => handleLike(post.postId)}
                     onToggleShowComments={() => toggleComment(post.postId)}
+                    onNavigateToEdit={(postId) => navigate(`/community/edit/${postId}`)}
+                    onDeletePost={(postId, authorId) => {
+                      if (userId !== authorId) return alert('ไม่มีสิทธิ์ลบโพสต์นี้');
+                      if (!window.confirm('ยืนยันการลบโพสต์นี้?')) return;
+                      try {
+                        deletePost(userId, postId);
+                        setPosts(prev => prev.filter(p => p.postId !== postId));
+                      } catch (err) {
+                        console.error("ลบโพสต์ล้มเหลว:", err);
+                        alert("ไม่สามารถลบโพสต์ได้");
+                      }
+                    }}
                   />
                   {visibleComments === post.postId && (
                     <CommentSection

@@ -1,6 +1,8 @@
+// src/services/postService.js
+
 const BASE_URL = "https://8i2v8q86ld.execute-api.us-east-1.amazonaws.com/kua-api";
 
-// 1. เพิ่มโพสต์ใหม่
+// 1. สร้างโพสต์ใหม่
 export const createPost = async (userId, postData) => {
   const res = await fetch(`${BASE_URL}/post/${userId}`, {
     method: "POST",
@@ -10,7 +12,7 @@ export const createPost = async (userId, postData) => {
 
   if (!res.ok) {
     const err = await res.json();
-    throw new Error(err?.error || 'โพสต์ล้มเหลว');
+    throw new Error(err?.error || "สร้างโพสต์ล้มเหลว");
   }
 
   return await res.json();
@@ -23,87 +25,143 @@ export const updatePost = async (userId, postId, data) => {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
+
+  if (!res.ok) {
+    throw new Error("ไม่สามารถแก้ไขโพสต์ได้");
+  }
+
   return await res.json();
 };
 
 // 3. ลบโพสต์
 export const deletePost = async (userId, postId) => {
-  await fetch(`${BASE_URL}/post/${userId}/${postId}`, {
+  const res = await fetch(`${BASE_URL}/post/${userId}/${postId}`, {
     method: "DELETE",
   });
+
+  if (!res.ok) {
+    throw new Error("ไม่สามารถลบโพสต์ได้");
+  }
 };
 
-// 4. แสดงโพสต์ทั้งหมด
+// 4. ดึงโพสต์ทั้งหมด (รวมทุกคน)
 export const fetchAllPosts = async () => {
   const res = await fetch(`${BASE_URL}/post`);
+
+  if (!res.ok) {
+    throw new Error("โหลดโพสต์ทั้งหมดล้มเหลว");
+  }
+
   return await res.json();
 };
 
-// 5. แสดงโพสต์ของผู้ใช้
+// 5. ดึงโพสต์ของผู้ใช้ที่ติดตาม
 export const fetchUserPosts = async (userId) => {
   const res = await fetch(`${BASE_URL}/post/${userId}`);
+
+  if (!res.ok) {
+    throw new Error("โหลดโพสต์ของผู้ใช้ล้มเหลว");
+  }
+
   return await res.json();
 };
 
-// 6. ไลก์โพสต์
-export const likePost = async (userId, postId) => {
-  await fetch(`${BASE_URL}/post/like/${userId}/${postId}`, {
-    method: "POST",
-  });
-};
-
-// 7. ไลก์คอมเมนต์
-export const likeComment = async (userId, commentId) => {
-  await fetch(`${BASE_URL}/post/${commentId}/comment/${userId}`, {
-    method: "POST",
-  });
-};
-
-// 8. คอมเมนต์โพสต์
-export const addComment = async (userId, postId, text, parentCommentId = null) => {
-  const res = await fetch(`${BASE_URL}/post/${postId}/comment/${userId}`, {
+// ✅ 6. ไลก์โพสต์
+export async function likePost(postId, userId) {
+  const res = await fetch(`${BASE_URL}/post/like/${userId}/${postId}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      caption: text, // <-- ต้องเปลี่ยนจาก text → caption
-      parentCommentId,
-    }),
   });
+
+  if (!res.ok) {
+    throw new Error("ไม่สามารถไลก์โพสต์ได้");
+  }
+
   return await res.json();
+}
+
+
+// 7. ไลก์คอมเมนต์
+export const likeComment = async (userId, cId) => {
+  const res = await fetch(`${BASE_URL}/post/like/${userId}/comment/${cId}`, {
+    method: "POST",
+  });
+
+  if (!res.ok) {
+    throw new Error("ไม่สามารถไลก์คอมเมนต์ได้");
+  }
 };
 
+
+// ✅ 8. คอมเมนต์โพสต์
+export async function addComment(postId, userId, caption, parentCommentId = null) {
+  const res = await fetch(`${BASE_URL}/post/comment-by/${userId}/${postId}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ caption, parentCommentId }),
+  });
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err?.error || 'ไม่สามารถเพิ่มคอมเมนต์ได้');
+  }
+
+  return await res.json();
+}
+
 // 9. ลบคอมเมนต์
-export const deleteComment = async (commentId, postId) => {
-  await fetch(`${BASE_URL}/post/${postId}/comment/${commentId}`, {
+export const deleteComment = async (cId, postId) => {
+  const res = await fetch(`${BASE_URL}/post/comment/${cId}/${postId}`, {
     method: "DELETE",
   });
+
+  if (!res.ok) {
+    throw new Error("ลบคอมเมนต์ล้มเหลว");
+  }
 };
 
 // 10. แก้ไขคอมเมนต์
-export const editComment = async (commentId, postId, newText) => {
-  await fetch(`${BASE_URL}/post/${postId}/comment/${commentId}`, {
+export const editComment = async (cId, postId, newText) => {
+  const res = await fetch(`${BASE_URL}/post/comment/${cId}/${postId}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ text: newText }),
+    body: JSON.stringify({ content: newText }),
   });
+
+  if (!res.ok) {
+    throw new Error("ไม่สามารถแก้ไขคอมเมนต์ได้");
+  }
 };
 
-// 11. ดึงเพื่อน/แนะนำเพื่อน
+// 11. ดึงรายชื่อเพื่อนและคำแนะนำ
 export const fetchFriends = async (userId) => {
   const res = await fetch(`${BASE_URL}/post/friend/${userId}`);
+
+  if (!res.ok) {
+    throw new Error("โหลดเพื่อนล้มเหลว");
+  }
+
   return await res.json();
 };
 
-// 12. เพิ่มเพื่อน (follow)
+// 12. ติดตามผู้ใช้
 export const followUser = async (userId, followId) => {
-  await fetch(`${BASE_URL}/post/friend/${userId}/${followId}`, {
+  const res = await fetch(`${BASE_URL}/post/friend/${userId}/${followId}`, {
     method: "POST",
   });
+
+  if (!res.ok) {
+    throw new Error("ติดตามผู้ใช้ล้มเหลว");
+  }
 };
 
-// 13. ลบเพื่อน (unfollow)
+// 13. เลิกติดตามผู้ใช้
 export const unfollowUser = async (userId, followId) => {
-  await fetch(`${BASE_URL}/post/friend/${userId}/${followId}`, {
+  const res = await fetch(`${BASE_URL}/post/friend/${userId}/${followId}`, {
     method: "DELETE",
   });
+
+  if (!res.ok) {
+    throw new Error("เลิกติดตามผู้ใช้ล้มเหลว");
+  }
 };

@@ -1,4 +1,3 @@
-// src/pages/EditPostPage/EditPostPage.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { X, Image as ImageIcon, BarChart2, MapPin, Globe, List } from 'lucide-react';
@@ -8,141 +7,172 @@ import { useAuth } from '../../contexts/AuthContext';
 import './EditPostPage.css';
 
 export default function EditPostPage() {
-    const navigate = useNavigate();
-    const { userId } = useAuth();
-    const params = useParams();
-    const postId = params.postId;
+  const navigate = useNavigate();
+  const { userId } = useAuth();
+  const { postId } = useParams();
 
-    const [content, setContent] = useState('');
-    const [imagePreview, setImagePreview] = useState(null);
-    const [imageFile, setImageFile] = useState(null);
-    const [name, setName] = useState('');
-    const [location, setLocation] = useState('');
-    const [originalPostData, setOriginalPostData] = useState(null);
-    const [isLoading, setIsLoading] = useState(true);
+  const [content, setContent] = useState('');
+  const [imagePreview, setImagePreview] = useState(null);
+  const [imageFile, setImageFile] = useState(null);
+  const [location, setLocation] = useState('');
+  const [originalPostData, setOriginalPostData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-    const MAX_CHARS = 280;
+  const MAX_CHARS = 280;
 
-    useEffect(() => {
-        async function loadPost() {
-            setIsLoading(true);
-            try {
-                const allPosts = await fetchAllPosts();
-                const post = allPosts.find(p => String(p.postId) === postId);
-                if (!post) throw new Error('ไม่พบโพสต์');
-                if (String(post.userId) !== String(userId)) {
-                    alert('คุณไม่มีสิทธิ์แก้ไขโพสต์นี้');
-                    navigate('/community', { replace: true });
-                    return;
-                }
-                setOriginalPostData(post);
-                setName(post.name || '');
-                setLocation(post.location || '');
-                setContent(post.caption || '');
-                setImagePreview(post.image || null);
-            } catch (err) {
-                alert('เกิดข้อผิดพลาดในการโหลดโพสต์');
-                navigate('/community', { replace: true });
-            }
-            setIsLoading(false);
+  useEffect(() => {
+    async function loadPost() {
+      setIsLoading(true);
+      try {
+        const allPosts = await fetchAllPosts();
+        const post = allPosts.find(p => String(p.postId) === String(postId));
+        if (!post) throw new Error('ไม่พบโพสต์');
+        if (String(post.userId) !== String(userId)) {
+          alert('คุณไม่มีสิทธิ์แก้ไขโพสต์นี้');
+          navigate('/community', { replace: true });
+          return;
         }
-        if (postId && userId) {
-            loadPost();
-        }
-    }, [postId, userId, navigate]);
+        setOriginalPostData(post);
+        setContent(post.caption || '');
+        setLocation(post.location || '');
+        setImagePreview(post.img_url || post.image || null);
+      } catch (err) {
+        console.error("เกิดข้อผิดพลาดในการโหลดโพสต์:", err);
+        alert('เกิดข้อผิดพลาดในการโหลดโพสต์');
+        navigate('/community', { replace: true });
+      }
+      setIsLoading(false);
+    }
 
-    const handleContentChange = (e) => setContent(e.target.value);
-    const handleNameChange = (e) => setName(e.target.value);
-    const handleLocationChange = (e) => setLocation(e.target.value);
+    if (postId && userId) {
+      loadPost();
+    }
+  }, [postId, userId, navigate]);
 
-    const handleImageFileChange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            setImageFile(file);
-            const reader = new FileReader();
-            reader.onloadend = () => setImagePreview(reader.result);
-            reader.readAsDataURL(file);
-        } else {
-            setImageFile(null);
-            setImagePreview(originalPostData ? originalPostData.image : null);
-        }
-    };
+  const handleContentChange = (e) => setContent(e.target.value);
+  const handleLocationChange = (e) => setLocation(e.target.value);
 
-    const removeImage = () => {
-        setImageFile(null);
-        setImagePreview(null);
-        const fileInput = document.getElementById('imageFileEditPageInput');
-        if (fileInput) fileInput.value = "";
-    };
+  const handleImageFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => setImagePreview(reader.result);
+      reader.readAsDataURL(file);
+    } else {
+      setImageFile(null);
+      setImagePreview(originalPostData ? originalPostData.img_url || originalPostData.image : null);
+    }
+  };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        if (!content.trim() && !imagePreview) {
-            alert('กรุณาใส่ข้อความหรือเลือกรูปภาพ');
-            return;
-        }
-        if (!userId || !postId) {
-            alert('ไม่สามารถดำเนินการได้');
-            return;
-        }
-        try {
-            await updatePost(userId, postId, {
-                caption: content.trim(),
-                name: name.trim(),
-                location: location.trim(),
-                image: imagePreview || null
-            });
-            navigate('/community', { state: { refresh: true, timestamp: Date.now(), from: 'edit' } });
-        } catch (err) {
-            alert('ไม่สามารถอัปเดตโพสต์ได้');
-        }
-    };
+  const removeImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    const fileInput = document.getElementById('imageFileEditPageInput');
+    if (fileInput) fileInput.value = "";
+  };
 
-    if (isLoading) return <div className="loading">กำลังโหลด...</div>;
-    if (!originalPostData && !isLoading) return <div className="error">ไม่พบโพสต์</div>;
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-    const isSubmitDisabled = !content.trim() && !imagePreview;
+    if (!content.trim() && !imagePreview) {
+      alert('กรุณาใส่ข้อความหรือเลือกรูปภาพ');
+      return;
+    }
 
-    return (
-        <div className="create-post-page-wrapper">
-            <div className="create-post-page-container">
-                <div className="create-post-header">
-                    <button onClick={() => navigate(-1)} className="header-back-button" aria-label="ย้อนกลับ"><X /></button>
-                    <h2 className="header-title">แก้ไขโพสต์</h2>
-                    <button onClick={handleSubmit} disabled={isSubmitDisabled} className="header-submit-button">บันทึก</button>
-                </div>
-                <div className="create-post-content-area">
-                    <img src={originalPostData?.avatar} alt="รูปโปรไฟล์" className="user-avatar-post-create" />
-                    <div className="post-form-fields">
-                        <input type="text" placeholder="ชื่อผู้โพสต์" value={name} onChange={handleNameChange} className="user-name-input" />
-                        <input type="text" placeholder="เพิ่มสถานที่ (ถ้ามี)" value={location} onChange={handleLocationChange} className="location-input" />
-                        <textarea value={content} onChange={handleContentChange} placeholder="มีอะไรเกิดขึ้นบ้าง?" className="content-textarea" rows="5" />
-                        {imagePreview && (
-                            <div className="image-preview-container">
-                                <img src={imagePreview} alt="รูปภาพที่เลือก" className="image-preview" />
-                                <button onClick={removeImage} className="remove-image-button" aria-label="ลบรูปภาพ"><X /></button>
-                            </div>
-                        )}
-                    </div>
-                </div>
-                <div className="post-meta-toolbar">
-                    <button className="reply-permission-button"><Globe /> ทุกคนสามารถตอบกลับได้</button>
-                    <div className="char-counter">{content.length} / {MAX_CHARS}</div>
-                </div>
-                <div className="actions-toolbar">
-                    <label htmlFor="imageFileEditPageInput" className="toolbar-label-button" title="เพิ่มรูปภาพ">
-                        <ImageIcon />
-                        <input type="file" id="imageFileEditPageInput" accept="image/*" onChange={handleImageFileChange} className="hidden-file-input" />
-                    </label>
-                    <button className="toolbar-button" title="GIF" disabled><span className="gif-text">GIF</span></button>
-                    <button className="toolbar-button" title="โพล" disabled><BarChart2 /></button>
-                    <button className="toolbar-button" title="อีโมจิ" disabled>
-                        <svg viewBox="0 0 24 24" aria-hidden="true" className="emoji-icon"><g><path d="M8 9.5C8 8.119 8.992 7 10.227 7h3.546C15.008 7 16 8.119 16 9.5S15.008 12 13.773 12h-3.546C8.992 12 8 10.881 8 9.5zm6.227 5.5H9.773C8.246 15 7 13.881 7 12.5S8.246 10 9.773 10h4.454C15.754 10 17 11.119 17 12.5S15.754 15 14.227 15zM12 22.75C6.072 22.75 1.25 17.928 1.25 12S6.072 1.25 12 1.25 22.75 6.072 22.75 12 17.928 22.75 12 22.75zm0-20C6.9 2.75 2.75 6.9 2.75 12S6.9 21.25 12 21.25s9.25-4.15 9.25-9.25S17.1 2.75 12 2.75z"></path></g></svg>
-                    </button>
-                    <button className="toolbar-button" title="กำหนดเวลา" disabled><List /></button>
-                    <button className="toolbar-button" title="ตำแหน่ง" disabled><MapPin /></button>
-                </div>
-            </div>
+    if (!userId || !postId) {
+      alert('ไม่สามารถดำเนินการได้');
+      return;
+    }
+
+    try {
+      const updateData = {
+        caption: content.trim(),
+        img_url: imagePreview || '', // backend ใช้ img_url
+        location: location.trim(),
+      };
+
+      console.log('[DEBUG] ส่ง updateData:', updateData);
+
+      await updatePost(userId, postId, updateData);
+
+      navigate('/community', {
+        state: { refresh: true, timestamp: Date.now(), from: 'edit' }
+      });
+    } catch (err) {
+      console.error("อัปเดตโพสต์ล้มเหลว:", err);
+      alert('ไม่สามารถอัปเดตโพสต์ได้ กรุณาลองใหม่');
+    }
+  };
+
+  if (isLoading) return <div className="loading">กำลังโหลด...</div>;
+  if (!originalPostData && !isLoading) return <div className="error">ไม่พบโพสต์</div>;
+
+  const isSubmitDisabled = !content.trim() && !imagePreview;
+
+  return (
+    <div className="create-post-page-wrapper">
+      <div className="create-post-page-container">
+        <div className="create-post-header">
+          <button onClick={() => navigate(-1)} className="header-back-button" aria-label="ย้อนกลับ"><X /></button>
+          <h2 className="header-title">แก้ไขโพสต์</h2>
+          <button onClick={handleSubmit} disabled={isSubmitDisabled} className="header-submit-button">บันทึก</button>
         </div>
-    );
+
+        <div className="create-post-content-area">
+          <img src={originalPostData?.avatar} alt="รูปโปรไฟล์" className="user-avatar-post-create" />
+          <div className="post-form-fields">
+            <p className="post-user-name">{originalPostData?.name || 'ผู้ใช้'}</p>
+            <input
+              type="text"
+              placeholder="เพิ่มสถานที่ (ถ้ามี)"
+              value={location}
+              onChange={handleLocationChange}
+              className="location-input"
+            />
+            <textarea
+              value={content}
+              onChange={handleContentChange}
+              placeholder="มีอะไรเกิดขึ้นบ้าง?"
+              className="content-textarea"
+              rows="5"
+            />
+            {imagePreview && (
+              <div className="image-preview-container">
+                <img src={imagePreview} alt="รูปภาพที่เลือก" className="image-preview" />
+                <button onClick={removeImage} className="remove-image-button" aria-label="ลบรูปภาพ"><X /></button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="post-meta-toolbar">
+          <button className="reply-permission-button"><Globe /> ทุกคนสามารถตอบกลับได้</button>
+          <div className="char-counter">{content.length} / {MAX_CHARS}</div>
+        </div>
+
+        <div className="actions-toolbar">
+          <label htmlFor="imageFileEditPageInput" className="toolbar-label-button" title="เพิ่มรูปภาพ">
+            <ImageIcon />
+            <input
+              type="file"
+              id="imageFileEditPageInput"
+              accept="image/*"
+              onChange={handleImageFileChange}
+              className="hidden-file-input"
+            />
+          </label>
+          <button className="toolbar-button" title="GIF" disabled><span className="gif-text">GIF</span></button>
+          <button className="toolbar-button" title="โพล" disabled><BarChart2 /></button>
+          <button className="toolbar-button" title="อีโมจิ" disabled>
+            <svg viewBox="0 0 24 24" aria-hidden="true" className="emoji-icon">
+              <g><path d="M8 9.5C8 8.119 8.992 7 10.227 7h3.546C15.008 7 16 8.119 16 9.5S15.008 12 13.773 12h-3.546C8.992 12 8 10.881 8 9.5zm6.227 5.5H9.773C8.246 15 7 13.881 7 12.5S8.246 10 9.773 10h4.454C15.754 10 17 11.119 17 12.5S15.754 15 14.227 15zM12 22.75C6.072 22.75 1.25 17.928 1.25 12S6.072 1.25 12 1.25 22.75 6.072 22.75 12 17.928 22.75 12 22.75zm0-20C6.9 2.75 2.75 6.9 2.75 12S6.9 21.25 12 21.25s9.25-4.15 9.25-9.25S17.1 2.75 12 2.75z"></path></g>
+            </svg>
+          </button>
+          <button className="toolbar-button" title="กำหนดเวลา" disabled><List /></button>
+          <button className="toolbar-button" title="ตำแหน่ง" disabled><MapPin /></button>
+        </div>
+      </div>
+    </div>
+  );
 }

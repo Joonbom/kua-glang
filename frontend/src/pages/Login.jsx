@@ -19,6 +19,7 @@ export default function Login() {
     });
 
     const data = await res.json();
+    console.log("[DEBUG] Login Response:", data); // เดี๋ยวมาลบ
     if (res.ok) {
       localStorage.setItem("userId", data.userId);
       navigate("..");
