@@ -54,11 +54,9 @@ const SharedHistoryItemCard = ({ item }) => {
           </span>
         </div>
 
-        <div className="history-card-row-3">
           <span className={`history-card-status-badge-new ${statusBadgeClass}`}>
             {statusText}
           </span>
-        </div>
       </div>
     </div>
   );
