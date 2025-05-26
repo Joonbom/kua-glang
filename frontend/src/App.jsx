@@ -1,12 +1,15 @@
-import { Routes, Route } from "react-router-dom";
-import HomePage from "./components/HomePage/HomePage.jsx";
-import AddFolder from "./components/AddFolder/AddFolder.jsx";
-import RecipeDetail from "./components/RecipeDetail/RecipeDetail.jsx";
-import CreateRecipe from "./components/CreateRecipe/CreateRecipe.jsx";
-import EditIngredient from "./components/EditIngredient/EditIngredient.jsx";
-import ProfilePage from "./pages/ProfilePage/ProfilePage.jsx";
-import EditProfilePage from "./pages/ProfilePage/EditProfilePage.jsx";
-import EditFieldPage from "./pages/ProfilePage/EditFieldPage.jsx";
+
+import { Routes, Route } from 'react-router-dom';
+import HomePage from './components/HomePage/HomePage.jsx';
+import AddFolder from './components/AddFolder/AddFolder.jsx';
+import RecipeDetail from './components/RecipeDetail/RecipeDetail.jsx';
+import CreateRecipe from './components/CreateRecipe/CreateRecipe.jsx';
+import CreateFood from './components/CreateRecipe/CreateFood.jsx';
+import EditFolder from './components/EditFolder/EditFolder.jsx';
+import EditFood from './components/EditFood/EditFood.jsx';
+import ProfilePage from './pages/ProfilePage/ProfilePage.jsx';
+import EditProfilePage from './pages/ProfilePage/EditProfilePage.jsx';
+import EditFieldPage from './pages/ProfilePage/EditFieldPage.jsx';
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Home from "./pages/Home"; //  import หน้าใหม่
@@ -23,9 +26,11 @@ function App() {
     <Routes>
       <Route path="/" element={<HomePage />} />
       <Route path="/add-folder/:id" element={<AddFolder />} />
-      <Route path="/recipe/:id" element={<RecipeDetail />} />
+      <Route path="/edit-folder/:folderId" element={<EditFolder />} />
+      <Route path="/recipe/:folderId" element={<RecipeDetail />} />
       <Route path="/create-recipe" element={<CreateRecipe />} />
-      <Route path="/edit-ingredient/:id" element={<EditIngredient />} />
+      <Route path="/create-food/:folderId" element={<CreateFood />} />
+      <Route path="/edit-food/:folderId" element={<EditFood />} />
       <Route path="/profile" element={<ProfilePage />} />
       <Route path="/edit-profile" element={<EditProfilePage />} />
       <Route path="/edit/:field" element={<EditFieldPage />} />
