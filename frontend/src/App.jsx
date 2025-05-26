@@ -13,6 +13,8 @@ import CommunityPage from './pages/CommunityPage/CommunityPage.jsx';
 import CreatePostPage from './pages/CreatePostPage/CreatePostPage.jsx';
 import EditPostPage from './pages/EditPostPage/EditPostPage.jsx';  
 import FollowingPage from './pages/FollowingPage/FollowingPage.jsx'; 
+import EditProfileImagePage from './pages/ProfilePage/EditProfileImage.jsx';
+
 
 import Competition from './competition.jsx';
 function App() {
@@ -34,6 +36,7 @@ function App() {
       <Route path="/community/create" element={<CreatePostPage />} />
       <Route path="/community/edit/:postId" element={<EditPostPage />} />
       <Route path="/community/following" element={<FollowingPage />} />
+      <Route path="/edit/profile_url" element={<EditProfileImagePage />} />
     </Routes>
   );
 }
