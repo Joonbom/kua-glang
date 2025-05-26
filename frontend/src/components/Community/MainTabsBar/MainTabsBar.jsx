@@ -8,7 +8,6 @@ const defaultMainTabs = [
     { name: 'สำหรับคุณ', path: '/community' },
     { name: 'กำลังติดตาม', path: '/community/following' },
     { name: 'แบ่งปัน', path: '/share' },
-    { name: 'ของที่ได้รับ', path: '/received' }
 ];
 
 export default function MainTabsBar({
