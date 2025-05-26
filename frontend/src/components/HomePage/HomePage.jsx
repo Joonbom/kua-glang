@@ -1,4 +1,6 @@
+
 import { useState, useEffect } from 'react';
+
 import axios from 'axios';
 import './HomePage.css';
 import { FaSignOutAlt, FaSearch, FaTimes, FaBell } from 'react-icons/fa';

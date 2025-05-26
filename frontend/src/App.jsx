@@ -14,9 +14,11 @@ import Register from "./pages/Register";
 import Home from "./pages/Home"; //  import หน้าใหม่
 import CommunityPage from './pages/CommunityPage/CommunityPage.jsx';
 import CreatePostPage from './pages/CreatePostPage/CreatePostPage.jsx';
-import EditPostPage from './pages/EditPostPage/EditPostPage.jsx';
-import FollowingPage from './pages/FollowingPage/FollowingPage.jsx';
+import EditPostPage from './pages/EditPostPage/EditPostPage.jsx';  
+import FollowingPage from './pages/FollowingPage/FollowingPage.jsx'; 
+import EditProfileImagePage from './pages/ProfilePage/EditProfileImage.jsx';
 import Competition from './pages/Competition.jsx';
+
 function App() {
   return (
     <Routes>
@@ -39,6 +41,7 @@ function App() {
       <Route path="/community/create" element={<CreatePostPage />} />
       <Route path="/community/edit/:postId" element={<EditPostPage />} />
       <Route path="/community/following" element={<FollowingPage />} />
+      <Route path="/edit/profile_url" element={<EditProfileImagePage />} />
     </Routes>
   );
 }
