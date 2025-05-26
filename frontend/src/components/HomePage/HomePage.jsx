@@ -3,25 +3,21 @@ import './HomePage.css';
 import { FaSignOutAlt, FaSearch, FaTimes } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import '@fontsource/bai-jamjuree';
+import { useEffect } from 'react';
 import MenuBar from '../MenuBar/MenuBar.jsx';
-import spaghettiImg from '../../assets/spaghetti.png';
-import salapaoImg from '../../assets/salapao.png';
-import chinesetableImg from '../../assets/chinesetable.png';
+import axios from 'axios';
 
-const URL = "http://localhost:3000";
+const URL = "https://8i2v8q86ld.execute-api.us-east-1.amazonaws.com/kua-api";
 
 const HomePage = () => {
   const [selectedLocation, setSelectedLocation] = useState("Accom park");
   const [searchQuery, setSearchQuery] = useState("");
-
   const [recipes, setRecipes] = useState([]);
-  const [username, setUsername] = useState(""); // เพิ่ม state สำหรับ username
+  const [username, setUsername] = useState("");
   const navigate = useNavigate();
 
-
   useEffect(() => {
-
-    const userId = localStorage.getItem("userId");
+    const userId = localStorage.getItem("userId") || "RPZ3" ;
 
     if (!userId) {
       setUsername("Joonbom");
@@ -46,19 +42,19 @@ const HomePage = () => {
       return;
     }
 
-    // ถ้ามี userId ให้ดึงข้อมูลจริง
+
     axios.get(`${URL}/profile/${userId}`)
       .then((res) => setUsername(res.data.username))
       .catch((err) => {
         console.error("Profile fetch error:", err);
-        setUsername("Joonbom"); // fallback
+        setUsername("Joonbom"); 
       });
 
     axios.get(`${URL}/folder/${userId}`)
       .then((res) => setRecipes(Array.isArray(res.data) ? res.data : []))
       .catch((err) => {
         console.error("Recipes fetch error:", err);
-        setRecipes([]); // fallback
+        setRecipes([]); 
       });
   }, []);
 
@@ -71,10 +67,10 @@ const HomePage = () => {
     localStorage.removeItem("userId");
     navigate("/login");
   };
+  const handleAddFolder = (id) => navigate(`/add-folder/${id}`);
   const handleRecipeClick = (id) => navigate(`/recipe/${id}`);
 
   const filteredRecipes = recipes.filter((recipe) =>
-
     recipe.folderName.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -113,7 +109,7 @@ const HomePage = () => {
             <FaSearch className="search-icon" />
             <input
               type="text"
-              placeholder="ค้นหา"
+              placeholder="ค้นหารายการอาหาร"
               value={searchQuery}
               onChange={handleSearchChange}
             />
@@ -121,7 +117,10 @@ const HomePage = () => {
               <FaTimes className="clear-icon" onClick={handleClearSearch} />
             )}
           </div>
-          <button className="add-new-btn">เพิ่มรายการใหม่</button>
+          <button
+            className="add-new-btn"
+            onClick={handleAddFolder}>
+            เพิ่มรายการใหม่</button>
         </div>
       </div>
 
@@ -129,7 +128,7 @@ const HomePage = () => {
         {filteredRecipes.map((recipe) => (
           <div key={recipe.id} className="recipe-item" onClick={() => handleRecipeClick(recipe.id)}>
             <div className="recipe-img-wrapper">
-              <img src={recipe.img} alt={recipe.name} className="recipe-img" />
+              <img src={recipe.img_url} alt={recipe.folderName} className="recipe-img" />
             </div>
             <div className="recipe-details">
               <h3 className="recipe-name-wrapper">
