@@ -1,26 +1,35 @@
-const express = require('express');
-const awsServerlessExpress = require('aws-serverless-express');
-const dotenv = require('dotenv');
+const express = require("express");
+const serverless = require("serverless-http");
+const dotenv = require("dotenv");
 const cors = require("cors");
 
-dotenv.config({ path: '.env' });
+dotenv.config({ path: ".env" });
 
 const app = express();
-const port = 3000;
-const server = awsServerlessExpress.createServer(app);
 
 app.use(cors());
 app.use(express.json());
 
-const authRoutes = require('./routes/auth.route');
-app.use(authRoutes);
-app.use("/post", require("./routes/post.route"))
-app.use("/share", require("./routes/share.route"))
-app.use("/profile", require("./routes/profile.route"))
-app.use("/history", require("./routes/history.route"))
-app.use("/ranking", require("./routes/rank.route"))
-app.use("/folder", require("./routes/folder.route"))
-app.use("/food", require("./routes/food.route"))
+app.use((req, res, next) => {
+    if (Buffer.isBuffer(req.body)) {
+        try {
+            req.body = JSON.parse(req.body.toString("utf8"));
+        } catch (err) {
+            console.error("Error parsing body buffer:", err);
+        }
+    }
+    next();
+});
+
+app.use("/auth", require("./routes/auth.route"));
+app.use("/post", require("./routes/post.route"));
+app.use("/share", require("./routes/share.route"));
+app.use("/profile", require("./routes/profile.route"));
+app.use("/history", require("./routes/history.route"));
+app.use("/ranking", require("./routes/rank.route"));
+app.use("/folder", require("./routes/folder.route"));
+app.use("/food", require("./routes/food.route"));
+app.use("/image", require("./routes/api.route"));
 
 app.get("/", (req, res) => {
     res.json({
@@ -31,9 +40,6 @@ app.get("/", (req, res) => {
     });
 });
 
-app.listen(port, () => {
-    console.log(`Backend service listening on port ${port}`);
+module.exports.handler = serverless(app, {
+    basePath: "/kua-api",
 });
-
-exports.handler = (event, context) =>
-    awsServerlessExpress.proxy(server, event, context);
