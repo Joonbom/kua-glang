@@ -48,7 +48,7 @@ return (
       <button className="edit-back-btn" onClick={handleBack}>⬆ ย้อนกลับ</button>
 
       <div className="edit-profile-header">
-        <div className="edit-profile-img" />
+        <img className="edit-profile-img" src={userData.profile_url} alt="Profile" />
         <div className="edit-profile-displayname">{userData.username}</div>
       </div>
       <EditProfileSection onSelect={handleSelect} />
