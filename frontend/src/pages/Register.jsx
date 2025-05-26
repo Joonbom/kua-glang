@@ -115,7 +115,6 @@ export default function Register() {
       <div className="w-[440px] max-h-[95vh] overflow-y-auto px-6 py-4 my-4 rounded-lg shadow-lg bg-white">
         <button
           onClick={() => navigate(-1)}
-          // คลาสที่เพิ่ม/ปรับปรุง
           className="bg-transparent border-none p-0 focus:outline-none text-pink-600 mb-2 text-2xl font-bold hover:text-pink-700"
         >
           ←
@@ -160,7 +159,7 @@ export default function Register() {
                 type="button"
                 onClick={() => setShowPass(!showPass)}
                 disabled={isUploading}
-                className="bg-transparent border-none p-0 focus:outline-none" // <--- แก้ไขตรงนี้
+                className="bg-transparent border-none p-0 focus:outline-none"
               >
                 {showPass ? <EyeOff /> : <Eye />}
               </button>
@@ -179,7 +178,7 @@ export default function Register() {
                 type="button"
                 onClick={() => setShowConfirm(!showConfirm)}
                 disabled={isUploading}
-                className="bg-transparent border-none p-0 focus:outline-none" // <--- แก้ไขตรงนี้
+                className="bg-transparent border-none p-0 focus:outline-none"
               >
                 {showConfirm ? <EyeOff /> : <Eye />}
               </button>
@@ -200,7 +199,8 @@ export default function Register() {
           มีบัญชีอยู่แล้วหรอ?{" "}
           <button
             onClick={() => navigate("/login")}
-            className="text-pink-600 font-semibold hover:underline"
+            // เพิ่ม/แก้ไขคลาสเหล่านี้
+            className="bg-transparent border-none p-0 focus:outline-none text-pink-600 font-semibold hover:underline"
             disabled={isUploading}
           >
             เข้าสู่ระบบได้ที่นี่เลย
@@ -213,6 +213,7 @@ export default function Register() {
 
 // Component Input ไม่มีการเปลี่ยนแปลง
 function Input({ icon, rightIcon, ...props }) {
+  // แก้ไข template literal ใน className ของ div หลักใน Input component
   return (
     <div className={`flex items-center bg-pink-100 rounded-full px-4 py-3 ${props.disabled ? 'opacity-50' : ''}`}>
       <div className="text-pink-600 mr-2">{icon}</div>
