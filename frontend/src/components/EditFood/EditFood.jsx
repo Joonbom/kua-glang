@@ -156,7 +156,7 @@ const EditFood = () => {
       navigate('/');
     } catch (err) {
       console.error('เกิดข้อผิดพลาด', err);
-      alert('บันทึกไม่สำเร็จ');
+      //alert('บันทึกไม่สำเร็จ');
     }
   };
 

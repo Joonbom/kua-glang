@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './AddFolder.css';
+import MenuBar from '../MenuBar/MenuBar.jsx';
 import axios from 'axios';
 
 const AddFolder = () => {
@@ -181,9 +182,12 @@ const AddFolder = () => {
         <div className="form-actions">
           <button onClick={handleAddFolder} className="save-button">บันทึก</button>
         </div>
+        <MenuBar />
       </div>
     </>
+
   );
+
 };
 
 export default AddFolder;

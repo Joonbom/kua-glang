@@ -148,7 +148,7 @@ const CreateRecipe = () => {
         </div>
         <h1>เพิ่มอาหาร</h1>
       </div>
-      <div className="create-recipe-container">
+      <div className="create-recipe-container scroll-hidden" style={{ maxHeight: '80vh' }}>
         <form onSubmit={handleSubmit}>
           <label>
             ชื่อ*:
